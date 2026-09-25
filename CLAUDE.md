@@ -37,3 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `resources/templates/Arcade Vault.html` + `*.jsx` is a standalone, buildless prototype (React 18 UMD + in-browser Babel via `<script type="text/babel">`, loaded straight from `unpkg`) of **Arcade Vault**, a Spanish-language retro arcade game portal.
 - It defines five screens wired through hand-rolled hash routing in `app.jsx`: `biblioteca` (game library grid, `biblioteca.jsx`), `detalle` (game detail, `detalle.jsx`), `player` (gameplay + HUD, `reproductor.jsx`), `auth` (login/signup, `auth.jsx`), and `salon` (hall of fame, `salon.jsx`) — plus a shared `nav.jsx`, mock catalog data in `data.jsx`, and the neon/pixel visual language in `styles.css`.
 - Treat these files as a **design and behavior spec, not code to port as-is**: they rely on globals (`React`, `window.Nav`), `location.hash` string routing, and `localStorage` for session/auth/scores — none of which match the App Router. When implementing a screen, translate its intent (routes, props, interactions) into idiomatic Next.js 16 routes/components and React 19 state, not a copy-paste.
+
+## Skills
+
+Usa siempre /frontend-design para diseñar la interfaz de usuario.
