@@ -1,6 +1,6 @@
 # SPEC 01 — MVP visual de Arcade Vault: biblioteca, detalle, login, jugador y salón de la fama
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** Ninguna (primera spec del proyecto)
 > **Date:** 2026-09-24
 > **Objective:** Implementar las cinco pantallas del prototipo (biblioteca, detalle, login, reproductor y salón de la fama) como rutas reales de Next.js App Router, replicando el diseño visual exacto de `resources/templates/` sin implementar mecánicas de juego reales.
@@ -29,7 +29,7 @@ El prototipo en `resources/templates/` es una SPA de un solo componente: rutea c
 - Pantalla **Login** (`app/login/page.tsx`): tabs iniciar sesión/crear cuenta, botón invitado, botones sociales decorativos — portado de `auth.jsx`, 100% falso (sin backend, sin OAuth real).
 - Pantalla **Reproductor** (`app/games/[id]/play/page.tsx`): HUD (jugador/puntuación/vidas/nivel), la misma arena CRT decorativa con formas a la deriva, controles de pausa/fin, y el modal de fin de juego con el flujo de guardado de puntaje que escribe en `localStorage` (clave `av_scores`) — portado de `reproductor.jsx`, sin tocar su simulación de puntaje por intervalo (es decorativa, no un juego real).
 - Pantalla **Salón de la Fama** (`app/hall-of-fame/page.tsx`): tabs por juego, podio top 3, tabla completa, fila "tu mejor marca" cuando hay sesión — portado de `salon.jsx`.
-- Módulo de datos mock (`lib/games.ts`): los 9 juegos, categorías, pool de nombres de jugadores y el generador `seededScores()`, portados 1:1 de `data.jsx` con tipos de TypeScript.
+- Módulo de datos mock (`lib/games.ts`): los 8 juegos, categorías, pool de nombres de jugadores y el generador `seededScores()`, portados 1:1 de `data.jsx` con tipos de TypeScript.
 - Breakpoints responsive exactamente como están en `styles.css` del prototipo (720px/840px/900px), ya portados verbatim a `app/globals.css` en una sesión anterior.
 
 **Out of scope (para specs futuras):**
@@ -112,24 +112,24 @@ Se agrega al array en `localStorage` bajo la clave `av_scores`, igual que `handl
 
 ## Acceptance criteria
 
-- [ ] La ruta `/` muestra la Biblioteca: hero, buscador, chips de categoría y grilla de 9 juegos.
-- [ ] Buscar por texto en la Biblioteca filtra la grilla en tiempo real; una búsqueda sin resultados muestra "NO HAY RESULTADOS".
-- [ ] Cada chip de categoría (TODOS, ARCADE, PUZZLE, SHOOTER, VERSUS) filtra correctamente la grilla.
-- [ ] Click en una card o en su botón "JUGAR" navega a `/games/[id]` con el detalle correspondiente.
-- [ ] `/games/[id]` muestra cover, tags, stats y un leaderboard de 10 filas generado con `seededScores()`.
-- [ ] El botón "JUGAR AHORA" en el detalle navega a `/games/[id]/play`.
-- [ ] `/games/[id]/play` muestra el HUD (jugador/puntuación/vidas/nivel), la pantalla CRT decorativa, y el puntaje incrementándose solo mientras el juego no está en pausa ni terminado.
-- [ ] El botón "PAUSA" detiene el incremento de puntaje y muestra el overlay "EN PAUSA"; "REANUDAR" lo continúa.
-- [ ] El botón "FIN" abre el modal de fin de juego con el puntaje final.
-- [ ] Guardar el puntaje en el modal agrega una entrada nueva en `localStorage` bajo la clave `av_scores` y muestra el toast "PUNTUACIÓN GUARDADA".
-- [ ] `/login` permite alternar entre "INICIAR SESIÓN" y "CREAR CUENTA", y cualquier texto en el campo usuario inicia sesión al enviar el formulario.
-- [ ] "JUGAR COMO INVITADO" inicia sesión sin usuario y redirige a `/`.
-- [ ] Tras iniciar sesión, el navbar muestra el nombre del usuario en vez de "Iniciar Sesión" en cualquier ruta.
-- [ ] `/hall-of-fame` muestra podio (top 3), tabla completa y tabs por juego; cambiar de tab actualiza podio y tabla.
-- [ ] Con sesión iniciada, `/hall-of-fame` agrega la fila "TU MEJOR MARCA EN [juego]" al final de la tabla.
-- [ ] El menú hamburguesa funciona por debajo de 840px de ancho, mostrando el panel lateral con backdrop.
-- [ ] `npm run lint` no reporta errores.
-- [ ] Ninguna ruta muestra errores en la consola del navegador al navegar entre las cinco pantallas.
+- [x] La ruta `/` muestra la Biblioteca: hero, buscador, chips de categoría y grilla de 8 juegos.
+- [x] Buscar por texto en la Biblioteca filtra la grilla en tiempo real; una búsqueda sin resultados muestra "NO HAY RESULTADOS".
+- [x] Cada chip de categoría (TODOS, ARCADE, PUZZLE, SHOOTER, VERSUS) filtra correctamente la grilla.
+- [x] Click en una card o en su botón "JUGAR" navega a `/games/[id]` con el detalle correspondiente.
+- [x] `/games/[id]` muestra cover, tags, stats y un leaderboard de 10 filas generado con `seededScores()`.
+- [x] El botón "JUGAR AHORA" en el detalle navega a `/games/[id]/play`.
+- [x] `/games/[id]/play` muestra el HUD (jugador/puntuación/vidas/nivel), la pantalla CRT decorativa, y el puntaje incrementándose solo mientras el juego no está en pausa ni terminado.
+- [x] El botón "PAUSA" detiene el incremento de puntaje y muestra el overlay "EN PAUSA"; "REANUDAR" lo continúa.
+- [x] El botón "FIN" abre el modal de fin de juego con el puntaje final.
+- [x] Guardar el puntaje en el modal agrega una entrada nueva en `localStorage` bajo la clave `av_scores` y muestra el toast "PUNTUACIÓN GUARDADA".
+- [x] `/login` permite alternar entre "INICIAR SESIÓN" y "CREAR CUENTA", y cualquier texto en el campo usuario inicia sesión al enviar el formulario.
+- [x] "JUGAR COMO INVITADO" inicia sesión sin usuario y redirige a `/`.
+- [x] Tras iniciar sesión, el navbar muestra el nombre del usuario en vez de "Iniciar Sesión" en cualquier ruta.
+- [x] `/hall-of-fame` muestra podio (top 3), tabla completa y tabs por juego; cambiar de tab actualiza podio y tabla.
+- [x] Con sesión iniciada, `/hall-of-fame` agrega la fila "TU MEJOR MARCA EN [juego]" al final de la tabla.
+- [x] El menú hamburguesa funciona por debajo de 840px de ancho, mostrando el panel lateral con backdrop.
+- [x] `npm run lint` no reporta errores.
+- [x] Ninguna ruta muestra errores en la consola del navegador al navegar entre las cinco pantallas.
 
 ---
 
