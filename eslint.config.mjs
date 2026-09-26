@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Buildless prototype (resources/templates/): design/behavior reference
+    // only, loaded via CDN + in-browser Babel — not app code, not linted.
+    "resources/templates/**",
   ]),
 ]);
 

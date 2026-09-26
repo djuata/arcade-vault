@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Press_Start_2P, JetBrains_Mono, Courier_Prime } from "next/font/google";
+import { SessionProvider } from "@/lib/session-context";
+import { Nav } from "@/components/nav/Nav";
+import { Footer } from "@/components/nav/Footer";
 import "./globals.css";
 
 const pixelFont = Press_Start_2P({
@@ -32,9 +35,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${pixelFont.variable} ${monoFont.variable} ${courierPrime.variable} h-full`}
     >
       <body>
-        <div className="av-bg" aria-hidden="true" />
-        <div className="av-noise" aria-hidden="true" />
-        <main className="av-main">{children}</main>
+        <SessionProvider>
+          <div className="av-bg" aria-hidden="true" />
+          <div className="av-noise" aria-hidden="true" />
+          <Nav />
+          <main className="av-main">{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );
