@@ -1,6 +1,6 @@
 # SPEC 02 — Página de Home (landing) de Arcade Vault
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01 (arcade-vault-mvp-visual)
 > **Date:** 2026-09-26
 > **Objective:** Implementar la página de Home (landing de marketing con hero, secciones "por qué", preview de juegos, stats, actividad en vivo y pricing) en la ruta raíz `/`, portada de `resources/templates/home-about/home.jsx`, moviendo la Biblioteca actual a `/games` y sin tocar la pantalla de About.
@@ -65,24 +65,24 @@ Esta spec no introduce estructuras de datos nuevas. `Home` reutiliza `GAMES` de 
 
 ## Acceptance criteria
 
-- [ ] `/` muestra la nueva Home (hero, por qué Arcade Vault, preview de juegos, stats, actividad en vivo, pricing, CTA final) en vez de la Biblioteca.
-- [ ] `/games` muestra exactamente el mismo contenido que antes tenía `/` (hero, buscador, chips de categoría, grilla de 8 juegos).
-- [ ] El Nav muestra "Inicio" (→ `/`) y "Biblioteca" (→ `/games`) como links separados; cada uno se resalta como activo solo en su ruta correspondiente.
-- [ ] El Nav no muestra ningún link a "Acerca de".
-- [ ] El botón "▶ EXPLORAR JUEGOS" del hero navega a `/games`.
-- [ ] El botón "✦ CREAR CUENTA" del hero navega a `/login`.
-- [ ] Las 6 mini-cards de "Juegos disponibles ahora" muestran los primeros 6 juegos de `GAMES` y cada click navega a `/games/[id]` del juego correspondiente.
-- [ ] El botón "VER TODOS LOS JUEGOS →" navega a `/games`.
-- [ ] El botón "VER SALÓN →" de la sección de actividad navega a `/hall-of-fame`.
-- [ ] El botón "EMPEZAR GRATIS →" de pricing navega a `/login`.
-- [ ] El CTA final "INSERTAR MONEDA →" navega a `/games`.
-- [ ] Las secciones con la clase `reveal` (por qué, stats, actividad, pricing, CTA final) aparecen con la animación de entrada al hacer scroll.
-- [ ] Las 8 siluetas flotantes decorativas se renderizan en el hero.
-- [ ] "VOLVER AL VAULT" en Detalle y en Reproductor navega a `/games`.
-- [ ] "VOLVER A LA BIBLIOTECA" en Salón de la Fama navega a `/games`.
-- [ ] Iniciar sesión (con cualquier texto) o entrar como invitado redirige a `/games`.
-- [ ] `npm run lint` no reporta errores.
-- [ ] Ninguna ruta muestra errores en la consola del navegador al navegar entre Home, Biblioteca, Detalle, Reproductor, Login y Salón de la Fama.
+- [x] `/` muestra la nueva Home (hero, por qué Arcade Vault, preview de juegos, stats, actividad en vivo, pricing, CTA final) en vez de la Biblioteca.
+- [x] `/games` muestra exactamente el mismo contenido que antes tenía `/` (hero, buscador, chips de categoría, grilla de 8 juegos).
+- [x] El Nav muestra "Inicio" (→ `/`) y "Biblioteca" (→ `/games`) como links separados; cada uno se resalta como activo solo en su ruta correspondiente.
+- [x] El Nav no muestra ningún link a "Acerca de".
+- [x] El botón "▶ EXPLORAR JUEGOS" del hero navega a `/games`.
+- [x] El botón "✦ CREAR CUENTA" del hero navega a `/login`.
+- [x] Las 6 mini-cards de "Juegos disponibles ahora" muestran los primeros 6 juegos de `GAMES` y cada click navega a `/games/[id]` del juego correspondiente.
+- [x] El botón "VER TODOS LOS JUEGOS →" navega a `/games`.
+- [x] El botón "VER SALÓN →" de la sección de actividad navega a `/hall-of-fame`.
+- [x] El botón "EMPEZAR GRATIS →" de pricing navega a `/login`.
+- [x] El CTA final "INSERTAR MONEDA →" navega a `/games`.
+- [x] Las secciones con la clase `reveal` (por qué, stats, actividad, pricing, CTA final) aparecen con la animación de entrada al hacer scroll.
+- [x] Las 8 siluetas flotantes decorativas se renderizan en el hero.
+- [x] "VOLVER AL VAULT" en Detalle y en Reproductor navega a `/games`.
+- [x] "VOLVER A LA BIBLIOTECA" en Salón de la Fama navega a `/games`.
+- [x] Iniciar sesión (con cualquier texto) o entrar como invitado redirige a `/games`.
+- [x] `npm run lint` no reporta errores.
+- [x] Ninguna ruta muestra errores en la consola del navegador al navegar entre Home, Biblioteca, Detalle, Reproductor, Login y Salón de la Fama.
 
 ---
 
