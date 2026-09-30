@@ -1,6 +1,6 @@
 # SPEC 03 — Página About y formulario de contacto con Resend
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 02 (home-landing-page)
 > **Date:** 2026-09-26
 > **Objective:** Implementar la pantalla About en `/about` (misión, highlights y formulario de contacto), portada de `resources/templates/home-about/about.jsx`, conectando el formulario a un envío real de correo vía Resend a través de un Route Handler server-side.
