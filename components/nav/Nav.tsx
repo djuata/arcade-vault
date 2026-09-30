@@ -10,8 +10,10 @@ export function Nav() {
   const { user, logout } = useSession();
   const [open, setOpen] = useState(false);
 
-  const isLibraryActive = pathname === "/" || pathname.startsWith("/games/");
+  const isHomeActive = pathname === "/";
+  const isLibraryActive = pathname === "/games" || pathname.startsWith("/games/");
   const isHallActive = pathname === "/hall-of-fame";
+  const isAboutActive = pathname === "/about";
   const isLoginActive = pathname === "/login";
 
   const close = () => setOpen(false);
@@ -26,11 +28,17 @@ export function Nav() {
           </div>
         </Link>
         <div className="links">
-          <Link href="/" className={isLibraryActive ? "active" : ""}>
+          <Link href="/" className={isHomeActive ? "active" : ""}>
+            Inicio
+          </Link>
+          <Link href="/games" className={isLibraryActive ? "active" : ""}>
             Biblioteca
           </Link>
           <Link href="/hall-of-fame" className={isHallActive ? "active" : ""}>
             Salón de la Fama
+          </Link>
+          <Link href="/about" className={isAboutActive ? "active" : ""}>
+            Acerca de
           </Link>
         </div>
         <div className="spacer" />
@@ -57,11 +65,17 @@ export function Nav() {
         <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
           MENÚ
         </div>
-        <Link href="/" className={isLibraryActive ? "active" : ""} onClick={close}>
+        <Link href="/" className={isHomeActive ? "active" : ""} onClick={close}>
+          Inicio
+        </Link>
+        <Link href="/games" className={isLibraryActive ? "active" : ""} onClick={close}>
           Biblioteca
         </Link>
         <Link href="/hall-of-fame" className={isHallActive ? "active" : ""} onClick={close}>
           Salón de la Fama
+        </Link>
+        <Link href="/about" className={isAboutActive ? "active" : ""} onClick={close}>
+          Acerca de
         </Link>
         <Link href="/login" className={isLoginActive ? "active" : ""} onClick={close}>
           {user ? "Cuenta" : "Iniciar Sesión"}
