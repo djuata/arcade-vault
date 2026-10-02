@@ -1,6 +1,6 @@
 # SPEC 04 — Conexión inicial a Supabase
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01 (arcade-vault-mvp-visual)
 > **Date:** 2026-10-01
 > **Objective:** Dejar la aplicación Next.js conectada a Supabase con clientes de browser y de servidor listos para usar y un health check verificable, sin crear tablas, sin autenticación y sin tocar ninguna pantalla.
