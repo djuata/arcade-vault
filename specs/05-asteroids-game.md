@@ -1,6 +1,6 @@
 # SPEC 05 — Juego Asteroids (ROCAS) jugable en el reproductor
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01 (arcade-vault-mvp-visual)
 > **Date:** 2026-10-02
 > **Objective:** Reemplazar la arena falsa del reproductor de ROCAS (`/games/rocas/play`) por el juego Asteroids real de `resources/started-games/02-asteroids/`, reescrito como motor TypeScript desacoplado de React y conectado al HUD, la pausa y el modal de fin de juego de la plataforma.
