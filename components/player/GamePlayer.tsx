@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Game } from "@/lib/games";
+import { GAME_ENGINES } from "@/lib/games/registry";
+import type { GameCallbacks } from "@/lib/games/types";
 import { useSession } from "@/lib/session-context";
+import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 
 const SCORES_STORAGE_KEY = "av_scores";
 
@@ -24,27 +27,65 @@ function saveScore(entry: Omit<SavedScore, "at">) {
   }
 }
 
+function isTypingTarget(target: EventTarget | null) {
+  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+}
+
 export function GamePlayer({ game }: { game: Game }) {
   const { user } = useSession();
+  const canvasRef = useRef<GameCanvasHandle>(null);
+  const createEngine = GAME_ENGINES[game.id];
+  const hasEngine = createEngine !== undefined;
+
   const [score, setScore] = useState(0);
-  const [lives] = useState(3);
+  const [lives, setLives] = useState(3);
+  const [engineLevel, setEngineLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const level = Math.floor(score / 2500) + 1;
+  const level = hasEngine ? engineLevel : Math.floor(score / 2500) + 1;
   const name = nameOverride ?? (user ? user.name : "INVITADO");
 
+  const callbacks = useMemo<GameCallbacks>(
+    () => ({
+      onScore: setScore,
+      onLives: setLives,
+      onLevel: setEngineLevel,
+      onGameOver: () => setOver(true),
+    }),
+    [],
+  );
+
+  // Mock score for games that still have no engine.
   useEffect(() => {
-    if (over || paused) return;
+    if (hasEngine || over || paused) return;
     const t = setInterval(() => setScore((s) => s + Math.floor(10 + Math.random() * 90)), 220);
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [hasEngine, over, paused]);
+
+  // Keeps the engine in sync with the pause/over UI state.
+  useEffect(() => {
+    if (!hasEngine) return;
+    if (paused || over) canvasRef.current?.pause();
+    else canvasRef.current?.resume();
+  }, [hasEngine, paused, over]);
+
+  useEffect(() => {
+    if (!hasEngine || over) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== "KeyP" || e.repeat || isTypingTarget(e.target)) return;
+      setPaused((p) => !p);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hasEngine, over]);
 
   const endGame = () => setOver(true);
   const restart = () => {
-    setScore(0);
+    if (hasEngine) canvasRef.current?.restart();
+    else setScore(0);
     setPaused(false);
     setOver(false);
     setSaved(false);
@@ -88,13 +129,17 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor" />
-            <div className="enemy e1" />
-            <div className="enemy e2" />
-            <div className="enemy e3" />
-            <div className="player-ship" />
-          </div>
+          {createEngine ? (
+            <GameCanvas ref={canvasRef} createEngine={createEngine} callbacks={callbacks} title={game.title} />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor" />
+              <div className="enemy e1" />
+              <div className="enemy e2" />
+              <div className="enemy e3" />
+              <div className="player-ship" />
+            </div>
+          )}
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
               <div>
