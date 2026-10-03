@@ -734,6 +734,30 @@ a { color: inherit; text-decoration: none; }
   50% { transform: translate(20px, 10px); }
 }
 
+/* real in-screen game (canvas engine) */
+.game-canvas {
+  position: absolute; inset: 0;
+  display: block;
+  width: 100%; height: 100%;
+  background: #000;
+  outline: none;
+}
+.touch-notice {
+  display: none;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  z-index: 4;
+  padding: 10px 12px;
+  text-align: center;
+  font-family: var(--pixel);
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  color: var(--yellow);
+  background: rgba(0,0,0,0.75);
+}
+@media (pointer: coarse) {
+  .touch-notice { display: block; }
+}
+
 /* game over modal */
 .modal-bd {
   position: fixed; inset: 0; z-index: 80;
