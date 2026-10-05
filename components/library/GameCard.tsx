@@ -2,7 +2,7 @@
 
 import { useRef, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { Game } from "@/lib/games";
+import { formatBest, type Game } from "@/lib/games";
 
 const BUTTON_COLOR_CLASS: Record<Game["color"], string> = {
   cyan: "",
@@ -44,7 +44,7 @@ export function GameCard({ game }: { game: Game }) {
         <div className="row">
           <div className="score-badge">
             <span>MEJOR PUNTUACIÓN</span>
-            <b>{game.best.toLocaleString("es-ES")}</b>
+            <b>{formatBest(game.best)}</b>
           </div>
           <button
             className={`btn ${BUTTON_COLOR_CLASS[game.color]}`}
