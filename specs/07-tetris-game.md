@@ -1,6 +1,6 @@
 # SPEC 07 — Juego Tetris jugable en la galería
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard)
 > **Date:** 2026-10-05
 > **Objective:** Agregar TETRIS como juego nuevo de la galería (entrada propia en `games`, motor TypeScript portado de `resources/started-games/03-tetris/`) con su ranking en Supabase, sin tocar CAÍDA.
