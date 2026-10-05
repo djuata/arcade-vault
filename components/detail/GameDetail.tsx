@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Game, ScoreRow } from "@/lib/games";
+import { formatBest, type Game, type ScoreRow } from "@/lib/games";
 
 function rowRankClass(index: number): string {
   if (index === 0) return " top1";
@@ -27,12 +27,12 @@ export function GameDetail({ game, scores }: { game: Game; scores: ScoreRow[] })
           <div className="stat-strip">
             <div>
               <div className="l">Partidas</div>
-              <div className="v">{game.plays}</div>
+              <div className="v">{game.plays.toLocaleString("es-ES")}</div>
             </div>
             <div>
               <div className="l">Mejor global</div>
               <div className="v" style={{ color: "var(--magenta)", textShadow: "0 0 6px rgba(255,0,110,0.5)" }}>
-                {game.best.toLocaleString("es-ES")}
+                {formatBest(game.best)}
               </div>
             </div>
             <div>
@@ -56,8 +56,14 @@ export function GameDetail({ game, scores }: { game: Game; scores: ScoreRow[] })
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
+          {scores.length === 0 && (
+            <div className="empty-state">
+              <div className="pixel">AÚN NO HAY PUNTAJES</div>
+              <p>{game.playable ? "Sé el primero en dejar tu marca." : "Este juego todavía no tiene ranking."}</p>
+            </div>
+          )}
           {scores.map((r, i) => (
-            <div key={r.name} className={`lb-row${rowRankClass(i)}`}>
+            <div key={r.rank} className={`lb-row${rowRankClass(i)}`}>
               <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
               <div className="pl">
                 {r.name}

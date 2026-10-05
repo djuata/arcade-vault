@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GAMES, type Game } from "@/lib/games";
+import type { Game } from "@/lib/games";
 import { useReveal } from "@/lib/use-reveal";
 
 function FloatingSilhouettes() {
@@ -237,7 +237,7 @@ const TOP_PLAYERS = [
 
 const TOP_ROW_RANK_CLASS = ["top1", "top2", "top3"];
 
-export function Home() {
+export function Home({ games }: { games: Game[] }) {
   useReveal();
 
   return (
@@ -300,7 +300,7 @@ export function Home() {
           <div className="section-rule" />
         </div>
         <div className="mini-rail">
-          {GAMES.slice(0, 6).map((g) => (
+          {games.slice(0, 6).map((g) => (
             <MiniCard key={g.id} game={g} />
           ))}
         </div>

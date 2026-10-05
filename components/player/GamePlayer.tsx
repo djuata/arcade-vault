@@ -2,28 +2,23 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { Game } from "@/lib/games";
+import { toPlayerName, type Game } from "@/lib/games";
 import { GAME_ENGINES } from "@/lib/games/registry";
 import type { GameCallbacks } from "@/lib/games/types";
 import { useSession } from "@/lib/session-context";
+import { createClient } from "@/lib/supabase/client";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 
-const SCORES_STORAGE_KEY = "av_scores";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-interface SavedScore {
-  game: string;
-  score: number;
-  name: string;
-  at: number;
-}
-
-function saveScore(entry: Omit<SavedScore, "at">) {
+async function insertScore(gameId: string, playerName: string, score: number): Promise<boolean> {
   try {
-    const all = JSON.parse(localStorage.getItem(SCORES_STORAGE_KEY) || "[]");
-    all.push({ ...entry, at: Date.now() });
-    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(all));
+    const { error } = await createClient()
+      .from("scores")
+      .insert({ game_id: gameId, player_name: playerName, score });
+    return !error;
   } catch {
-    // localStorage disabled (private mode) — the score simply doesn't persist.
+    return false;
   }
 }
 
@@ -43,10 +38,11 @@ export function GamePlayer({ game }: { game: Game }) {
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const level = hasEngine ? engineLevel : Math.floor(score / 2500) + 1;
-  const name = nameOverride ?? (user ? user.name : "INVITADO");
+  const name = nameOverride ?? (user ? toPlayerName(user.name) : "INVITADO");
+  const canSave = saveStatus !== "saving" && name.trim().length > 0 && score > 0;
 
   const callbacks = useMemo<GameCallbacks>(
     () => ({
@@ -88,7 +84,13 @@ export function GamePlayer({ game }: { game: Game }) {
     else setScore(0);
     setPaused(false);
     setOver(false);
-    setSaved(false);
+    setSaveStatus("idle");
+  };
+
+  const saveToLeaderboard = async () => {
+    setSaveStatus("saving");
+    const ok = await insertScore(game.id, name.trim(), score);
+    setSaveStatus(ok ? "saved" : "error");
   };
 
   return (
@@ -168,25 +170,27 @@ export function GamePlayer({ game }: { game: Game }) {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) => setNameOverride(e.target.value.toUpperCase().slice(0, 10))}
-                  placeholder="TUS INICIALES"
-                />
-                <button
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
-            ) : (
+            {saveStatus === "saved" ? (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+            ) : game.playable ? (
+              <>
+                <div className="input-row">
+                  <input
+                    value={name}
+                    onChange={(e) => setNameOverride(e.target.value.toUpperCase().slice(0, 10))}
+                    maxLength={10}
+                    placeholder="TUS INICIALES"
+                  />
+                  <button className="btn yellow" disabled={!canSave} onClick={saveToLeaderboard}>
+                    {saveStatus === "saving" ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
+                  </button>
+                </div>
+                {saveStatus === "error" && (
+                  <div className="save-error">NO SE PUDO GUARDAR. INTÉNTALO DE NUEVO.</div>
+                )}
+              </>
+            ) : (
+              <div className="save-note">ESTE JUEGO AÚN NO TIENE RANKING.</div>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>
