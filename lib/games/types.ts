@@ -2,7 +2,8 @@
 
 export interface GameCallbacks {
   onScore: (score: number) => void;
-  onLives: (lives: number) => void;
+  /** Optional: games without lives never emit it and the HUD hides the stat. */
+  onLives?: (lives: number) => void;
   onLevel: (level: number) => void;
   onGameOver: (finalScore: number) => void;
 }

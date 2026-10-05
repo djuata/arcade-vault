@@ -445,6 +445,38 @@ a { color: inherit; text-decoration: none; }
   image-rendering: pixelated;
 }
 
+/* Tetris: a 5-column well with stacked blocks and an I piece falling. Cells are 20% × 12%. */
+.cover-tetris { background: linear-gradient(180deg, #001a2e, #0a0a18); }
+.cover-tetris::before {
+  content: "";
+  position: absolute;
+  inset: 8% 32% 0;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(20% - 1px), rgba(255,255,255,0.07) calc(20% - 1px) 20%),
+    repeating-linear-gradient(0deg, transparent 0 calc(12% - 1px), rgba(255,255,255,0.07) calc(12% - 1px) 12%);
+}
+.cover-tetris::after {
+  content: "";
+  position: absolute;
+  inset: 8% 32% 0;
+  background:
+    linear-gradient(#00f5ff,#00f5ff) left 60% top 4% / 20% 48%,
+    linear-gradient(#ff006e,#ff006e) left 0 top 88% / 20% 12%,
+    linear-gradient(#ffae00,#ffae00) left 20% top 88% / 20% 12%,
+    linear-gradient(#00ff88,#00ff88) left 40% top 88% / 20% 12%,
+    linear-gradient(#aa00ff,#aa00ff) left 80% top 88% / 20% 12%,
+    linear-gradient(#00f5ff,#00f5ff) left 0 top 76% / 20% 12%,
+    linear-gradient(#00f5ff,#00f5ff) left 20% top 76% / 20% 12%,
+    linear-gradient(#ff006e,#ff006e) left 40% top 76% / 20% 12%,
+    linear-gradient(#ffae00,#ffae00) left 80% top 76% / 20% 12%,
+    linear-gradient(#aa00ff,#aa00ff) left 20% top 64% / 20% 12%,
+    linear-gradient(#aa00ff,#aa00ff) left 40% top 64% / 20% 12%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 8px rgba(0,245,255,0.4));
+}
+
 .cover-snake { background: linear-gradient(135deg,#003a2a,#0a0a18); }
 .cover-snake::after {
   content: "";

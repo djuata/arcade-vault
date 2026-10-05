@@ -73,7 +73,7 @@ export const createAsteroidsGame: GameEngineFactory = (canvas, callbacks) => {
     state = "playing";
     spawnAsteroids(INITIAL_ASTEROIDS);
     callbacks.onScore(score);
-    callbacks.onLives(lives);
+    callbacks.onLives?.(lives);
     callbacks.onLevel(level);
   }
 
@@ -97,7 +97,7 @@ export const createAsteroidsGame: GameEngineFactory = (canvas, callbacks) => {
     explode(ship.x, ship.y, 14);
     ship.dead = true;
     lives--;
-    callbacks.onLives(lives);
+    callbacks.onLives?.(lives);
     if (lives <= 0) {
       state = "gameover";
       callbacks.onGameOver(score);

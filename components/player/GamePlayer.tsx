@@ -33,7 +33,8 @@ export function GamePlayer({ game }: { game: Game }) {
   const hasEngine = createEngine !== undefined;
 
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
+  // Mock games show 3 lives; engines show them only if they emit onLives.
+  const [lives, setLives] = useState<number | null>(hasEngine ? null : 3);
   const [engineLevel, setEngineLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
@@ -107,10 +108,12 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Puntuación</div>
             <div className="v">{score.toLocaleString("es-ES")}</div>
           </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
-          </div>
+          {lives !== null && (
+            <div className="hud-stat lives">
+              <div className="l">Vidas</div>
+              <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
+            </div>
+          )}
           <div className="hud-stat level">
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
