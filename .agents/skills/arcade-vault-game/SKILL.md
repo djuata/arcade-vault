@@ -15,7 +15,9 @@ metadata:
 - Making a catalog game (`games` table) playable and ranked.
 - Touching the engine ↔ player ↔ leaderboard contract.
 
-Reference implementation: ROCAS (Asteroids). Specs: `specs/05-asteroids-game.md` (engine + player), `specs/06-games-table-and-leaderboard.md` (DB + ranking). If the repo works spec-first for this change, write the spec with `/spec` before coding.
+Reference implementation: ROCAS (Asteroids). Specs: `specs/05-asteroids-game.md` (engine + player), `specs/06-games-table-and-leaderboard.md` (DB + ranking), `specs/07-tetris-game.md` (second game; best template for a new spec).
+
+This skill is spec-first: it writes the spec, **pauses for the user's approval**, then implements. One invocation, two phases, one gate in between.
 
 ## What a New Game Touches
 
@@ -90,6 +92,20 @@ Keep rules/constants 1:1 (no balance tweaks). Replace: globals → closure; `get
 `GamePlayer` always shows lives (starts at 3) and level. A game without lives/levels, non-4:3 canvas, or touch controls requires changing `GameCallbacks`/`GamePlayer`: that's its own spec, not a workaround inside the engine.
 
 ## Workflow
+
+### Phase A: Spec (always first, then STOP)
+
+`/spec` has `disable-model-invocation`, so do NOT try to call it. Reproduce its output instead:
+
+1. Read `.agents/skills/spec/template.md`, `specs/07-tetris-game.md` and the two most recent specs. Match their language (Spanish), headings and state wording exactly.
+2. Read the source game (`resources/started-games/<NN>-name/`) and `lib/games/registry.ts`. Decide with the user, via `AskUserQuestion`, only what is genuinely open (new catalog entry vs flipping a placeholder, assets strategy, platform gaps). Gallery rule: a game is a NEW catalog entry; never attach it to an existing placeholder without asking.
+3. Next number = highest in `specs/` + 1, two digits; slug `NN-<slug>-game.md`; date from `date +%F`, never guessed.
+4. Write `specs/NN-<slug>-game.md` with state `Draft` (never `Approved`): header, scope (with explicit "not included"), data model, numbered implementation plan following Phase B, boolean acceptance criteria, decisions, risks. Do not write code.
+5. **STOP.** Announce the path and ask the user to review and approve. Wait. Do not touch `lib/`, `app/`, `supabase/` until they confirm.
+
+### Phase B: Implementation (only after approval)
+
+Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.spec-config.yml`), mark the spec `Implementado` at the end, and follow the spec's plan:
 
 1. **Engine**: copy [assets/engine.ts.tpl](assets/engine.ts.tpl) and [assets/input.ts.tpl](assets/input.ts.tpl) to `lib/games/<slug>/{engine,input}.ts`; add `constants.ts`, `entities.ts`, `utils.ts` as needed. Factory name: `create<Name>Game`.
 2. **Register**: add `<slug>: create<Name>Game` to `GAME_ENGINES`.
