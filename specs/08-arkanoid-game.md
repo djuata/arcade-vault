@@ -1,6 +1,6 @@
 # SPEC 08 — Juego Arkanoid jugable en la galería
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard), SPEC 07 (tetris-game)
 > **Date:** 2026-10-05
 > **Objective:** Agregar ARKANOID como juego nuevo de la galería (entrada propia en `games`, motor TypeScript portado de `resources/started-games/04-arkanoid/`) con su ranking en Supabase, sin tocar BLOQUE BUSTER.
