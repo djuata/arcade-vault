@@ -13,9 +13,17 @@ export interface GameEngine {
   resume: () => void;
   restart: () => void;
   destroy: () => void;
+  /** Optional: swaps the palette live, without restarting the run. */
+  setSkin?: (skin: string) => void;
+}
+
+export interface GameEngineOptions {
+  /** Skin id; unknown or missing ids fall back to the default skin. */
+  skin?: string;
 }
 
 export type GameEngineFactory = (
   canvas: HTMLCanvasElement,
   callbacks: GameCallbacks,
+  options?: GameEngineOptions,
 ) => GameEngine;

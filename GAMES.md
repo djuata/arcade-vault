@@ -90,6 +90,7 @@ Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado
 - **Ruta:** `/games/snake` · **Motor:** `lib/games/snake/` (`createSnakeGame`)
 - **Cover:** `.cover-snake-fruit` · **Migración:** `20261006183212_add_snake_game.sql`
 - **Assets:** `public/games/snake/fruits.png`
+- **Skins:** classic (default), neon, retro
 
 | Control | Acción |
 | ------- | ------ |
