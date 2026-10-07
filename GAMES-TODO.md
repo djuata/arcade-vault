@@ -68,6 +68,8 @@
 
 ## Aceptados (próximos a implementar)
 
+- [ ] **CROAC** (`croac`) — ARCADE / magenta · ganó el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [10](specs/10-croac-game.md) (Draft)
+
 ## Implementados
 
 - [x] **ROCAS** (`rocas`) — spec [05](specs/05-asteroids-game.md)
@@ -76,3 +78,6 @@
 - [x] **SNAKE** (`snake`) — spec [09](specs/09-snake-game.md)
 
 ## Descartados
+
+- **CRUCE** (`cruce`) — PUZZLE / cyan · perdió el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [game jam](specs/game-jam/cruce/cruce-game.md)
+- **CHARCA** (`charca`) — VERSUS / yellow · perdió el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [game jam](specs/game-jam/charca/charca-game.md)
