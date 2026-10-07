@@ -36,29 +36,3 @@ export const FRUIT_SPRITES = {
 export type FruitKey = keyof typeof FRUIT_SPRITES;
 
 export const FRUIT_KEYS = Object.keys(FRUIT_SPRITES) as FruitKey[];
-
-// Flat colors used while the spritesheet is loading or if it fails to load.
-export const FALLBACK_COLORS: Readonly<Record<FruitKey, string>> = {
-  banana: "#f2d12b",
-  orange: "#f58a1f",
-  grape: "#8e2fb5",
-  garlic: "#e8e2d0",
-  eggplant: "#6a1f8a",
-  strawberry: "#e5262c",
-  cherry: "#c4162a",
-  carrot: "#f08a24",
-  mushroom: "#d9534f",
-  broccoli: "#2e8b2e",
-  watermelon: "#e0434f",
-  pepper: "#2f9e44",
-  kiwi: "#7cb518",
-  lemon: "#f4e04d",
-  peach: "#f7a58b",
-  peanut: "#c49a5b",
-  apple: "#d62828",
-  tomato: "#ff3b1d",
-  berries: "#9b2d6f",
-  grapes2: "#7a2fa8",
-  pineapple: "#f0b323",
-  melon: "#9bd36b",
-};

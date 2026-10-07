@@ -1,3 +1,4 @@
+import { DEFAULT_SKIN, resolveSkin } from "../skins";
 import type { GameEngineFactory } from "../types";
 import {
   type Cell,
@@ -17,11 +18,13 @@ import {
 import { FRUIT_POINTS, H, MAX_DT, MAX_QUEUED_TURNS, W } from "./constants";
 import { createInput } from "./input";
 import { drawFrame } from "./render";
+import { SNAKE_SKINS, type SnakePalette } from "./skins";
 import { SPRITESHEET_URL } from "./sprites";
+import { tintSheet } from "./tint";
 
 type GameState = "playing" | "gameover";
 
-export const createSnakeGame: GameEngineFactory = (canvas, callbacks) => {
+export const createSnakeGame: GameEngineFactory = (canvas, callbacks, options) => {
   const maybeCtx = canvas.getContext("2d");
   if (!maybeCtx) throw new Error("Snake: 2D canvas context is not available");
   const ctx: CanvasRenderingContext2D = maybeCtx;
@@ -38,7 +41,11 @@ export const createSnakeGame: GameEngineFactory = (canvas, callbacks) => {
   let tickAccumulator = 0; // ms
   let state: GameState = "playing";
 
-  let sheet: HTMLImageElement | null = null;
+  let skinId: string = options?.skin ?? DEFAULT_SKIN;
+  let palette: SnakePalette = resolveSkin(SNAKE_SKINS, skinId);
+  let image: HTMLImageElement | null = null; // the loaded PNG, untinted
+  let activeSheet: HTMLImageElement | HTMLCanvasElement | null = null;
+  const tintCache = new Map<string, HTMLCanvasElement>();
   let paused = false;
   let destroyed = false;
   let rafId: number | null = null;
@@ -46,11 +53,36 @@ export const createSnakeGame: GameEngineFactory = (canvas, callbacks) => {
 
   const input = createInput(() => !paused && state !== "gameover", enqueueTurn);
 
-  const image = new Image();
-  image.onload = () => {
-    if (!destroyed) sheet = image;
+  const loader = new Image();
+  loader.onload = () => {
+    if (destroyed) return;
+    image = loader;
+    refreshSheet();
   };
-  image.src = SPRITESHEET_URL;
+  loader.src = SPRITESHEET_URL;
+
+  // ── Skin ────────────────────────────────────────────────────────────────────
+
+  // Tints always start from the original PNG and are cached per skin, so
+  // switching skins back and forth never stacks tints.
+  function tintedSheet(source: HTMLImageElement): HTMLCanvasElement | HTMLImageElement {
+    const tint = palette.spriteTint;
+    if (!tint) return source;
+    let sheet = tintCache.get(skinId);
+    if (!sheet) {
+      sheet = tintSheet(source, tint);
+      tintCache.set(skinId, sheet);
+    }
+    return sheet;
+  }
+
+  function refreshSheet() {
+    activeSheet = image ? tintedSheet(image) : null;
+  }
+
+  function render() {
+    drawFrame(ctx, { snake, fruit, direction, sheet: activeSheet }, palette);
+  }
 
   // ── State ───────────────────────────────────────────────────────────────────
 
@@ -136,7 +168,7 @@ export const createSnakeGame: GameEngineFactory = (canvas, callbacks) => {
     const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, MAX_DT);
     lastTime = ts;
     update(dt);
-    drawFrame(ctx, { snake, fruit, direction, sheet });
+    render();
     rafId = requestAnimationFrame(frame);
   }
 
@@ -175,12 +207,20 @@ export const createSnakeGame: GameEngineFactory = (canvas, callbacks) => {
       paused = false;
       startLoop();
     },
+    setSkin(id) {
+      if (destroyed) return;
+      skinId = id;
+      palette = resolveSkin(SNAKE_SKINS, id);
+      refreshSheet();
+      if (rafId === null) render(); // paused or game over: show the new palette now
+    },
     destroy() {
       if (destroyed) return;
       destroyed = true;
       stopLoop();
       input.detach();
-      image.onload = null;
+      loader.onload = null;
+      tintCache.clear();
     },
   };
 };

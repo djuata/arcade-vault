@@ -1,15 +1,57 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { toPlayerName, type Game } from "@/lib/games";
-import { GAME_ENGINES } from "@/lib/games/registry";
+import { GAME_ENGINES, GAME_SKINS } from "@/lib/games/registry";
+import { DEFAULT_SKIN, readStoredSkin, storeSkin } from "@/lib/games/skins";
 import type { GameCallbacks } from "@/lib/games/types";
 import { useSession } from "@/lib/session-context";
 import { createClient } from "@/lib/supabase/client";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
+import { SkinSelector } from "./SkinSelector";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+// ── Skin preference store (same pattern as lib/session-context.tsx) ─────────
+
+const NO_SKINS: readonly string[] = [];
+const skinListeners = new Set<() => void>();
+// In-tab memory so the selector still works when localStorage is blocked.
+const sessionSkins = new Map<string, string>();
+
+function notifySkinChange() {
+  for (const listener of skinListeners) listener();
+}
+
+function subscribeSkin(callback: () => void) {
+  skinListeners.add(callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    skinListeners.delete(callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function currentSkin(slug: string, available: readonly string[]): string {
+  const remembered = sessionSkins.get(slug);
+  if (remembered !== undefined && available.includes(remembered)) return remembered;
+  return readStoredSkin(slug, available);
+}
+
+function getServerSkin(): string {
+  return DEFAULT_SKIN;
+}
+
+function useGameSkin(slug: string, available: readonly string[]) {
+  const skin = useSyncExternalStore(subscribeSkin, () => currentSkin(slug, available), getServerSkin);
+  const changeSkin = (id: string) => {
+    sessionSkins.set(slug, id);
+    storeSkin(slug, id);
+    notifySkinChange();
+  };
+  return [skin, changeSkin] as const;
+}
 
 async function insertScore(gameId: string, playerName: string, score: number): Promise<boolean> {
   try {
@@ -31,6 +73,9 @@ export function GamePlayer({ game }: { game: Game }) {
   const canvasRef = useRef<GameCanvasHandle>(null);
   const createEngine = GAME_ENGINES[game.id];
   const hasEngine = createEngine !== undefined;
+  const skins = GAME_SKINS[game.id] ?? NO_SKINS;
+  const [skin, changeSkin] = useGameSkin(game.id, skins);
+  const showSkins = hasEngine && skins.length > 1;
 
   const [score, setScore] = useState(0);
   // Mock games show 3 lives; engines show them only if they emit onLives.
@@ -119,7 +164,15 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
         </div>
-        <div className="hud-actions">
+        <div className={showSkins ? "hud-actions av-skin-actions" : "hud-actions"}>
+          {showSkins && (
+            <SkinSelector
+              skins={skins}
+              value={skin}
+              onChange={changeSkin}
+              onCommit={() => canvasRef.current?.focus()}
+            />
+          )}
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
@@ -135,7 +188,13 @@ export function GamePlayer({ game }: { game: Game }) {
       <div className="crt">
         <div className="crt-screen">
           {createEngine ? (
-            <GameCanvas ref={canvasRef} createEngine={createEngine} callbacks={callbacks} title={game.title} />
+            <GameCanvas
+              ref={canvasRef}
+              createEngine={createEngine}
+              callbacks={callbacks}
+              skin={skin}
+              title={game.title}
+            />
           ) : (
             <div className="game-arena">
               <div className="grid-floor" />
