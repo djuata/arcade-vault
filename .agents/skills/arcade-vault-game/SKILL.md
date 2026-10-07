@@ -29,6 +29,7 @@ This skill is spec-first: it writes the spec, **pauses for the user's approval**
 | `games` row | Same migration, `insert` | Only if the slug is NOT in the catalog |
 | Cover CSS | `.cover-*` in `app/globals.css` | Only for a brand-new catalog game |
 | `database.types.ts` | `generate_typescript_types` | Only if the schema changes (data-only: never) |
+| Games doc | `GAMES.md` (summary row + game section) | Always |
 | `GamePlayer`, Library, Detail, Hall of Fame | — | **Never**: all DB-driven |
 
 Catalog slugs without engine yet: `bloque-buster` (04-arkanoid), `caida` (03-tetris), `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`. They already exist in `games`: only flip `playable`.
@@ -115,6 +116,7 @@ Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.s
    - valid insert for `<slug>` → `201`; invalid (`score` 0, name > 10 chars, unknown `game_id`) → rejected.
    - delete test rows with `execute_sql`.
 6. **Manual run** (`npm run dev`): play, die, save, check `/games/<slug>` and `/hall-of-fame`.
+7. **Document**: update `GAMES.md` — add a row to the summary table, a section following the existing ones (route, engine, cover, migration, assets, controls table, rules), remove the slug from "Catálogo sin motor" if it was a placeholder, and bump the date and playable count. Take controls and rules from the engine code (`input.ts`, `constants.ts`, `engine.ts`), not from the spec.
 
 ## Acceptance Checklist
 
@@ -128,6 +130,7 @@ Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.s
 - [ ] A non-playable game still shows "ESTE JUEGO AÚN NO TIENE RANKING." and writes nothing.
 - [ ] `git diff` shows no changes in `lib/session-context.tsx`, `components/nav/`, `resources/`.
 - [ ] No new dependencies; no console errors or React warnings.
+- [ ] `GAMES.md` lists the game with controls and rules matching the engine.
 
 ## Commands
 
