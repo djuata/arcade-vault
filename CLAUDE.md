@@ -60,7 +60,7 @@ Pages are thin async Server Components that fetch data and hand it to a componen
 ### Game engines
 
 - Every game is a **pure-TS canvas engine** in `lib/games/<slug>/` (no React), exposing a factory `create<Name>Game(canvas, callbacks): GameEngine`. Contracts in `lib/games/types.ts`: `GameEngine` (`pause/resume/restart/destroy`) and `GameCallbacks` (`onScore`, `onLevel`, `onGameOver`, optional `onLives` — when an engine never emits it, the HUD hides lives).
-- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake`. Catalog entries without an engine render the mock arena. **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one.
+- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake`. Catalog entries without an engine render the mock arena. **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one. Candidate games live in **`GAMES-TODO.md`** (maintained by the `game-planner` agent).
 - `components/player/GameCanvas.tsx` mounts the engine (fixed 800×600, CSS-scaled to 4:3) and destroys it on unmount; `callbacks` must be referentially stable. `components/player/GamePlayer.tsx` owns the chrome: HUD, pause (`P`), "FIN DEL JUEGO" modal, and inserting the score into `scores` via the browser client. Engines draw only the game.
 - **Invariant**: slug = `games.id` = route segment = `GAME_ENGINES` key = `scores.game_id` = engine folder. And `GAME_ENGINES[slug]` exists **⇔** `games.playable = true` — always change both together.
 - Sprite assets live in `public/games/<slug>/`. Original sources in `resources/started-games/` are reference only — never edit `resources/`.
@@ -84,6 +84,16 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 | `/spec-impl <NN-spec>` | Implements an **Approved** spec: creates the branch and goes step by step pausing for diffs. User-invoked only. |
 | `arcade-vault-game` | Create or port a game (engine + registry + migration + cover CSS + RLS check). **Spec-first**: writes the Draft spec, then STOPS for approval before touching `lib/`, `app/` or `supabase/`. Includes templates in `assets/` (`engine.ts.tpl`, `input.ts.tpl`, `migration.sql.tpl`). |
 | `/frontend-design` | Use it always when designing UI. |
+
+### Project subagents (`.claude/agents/`)
+
+| Agent | Use |
+| ----- | --- |
+| `game-planner` | Plans and decides **which game to add next**: reads the real state (`GAMES.md`, registry, `specs/`, migrations, `resources/started-games/`), scores 2–4 candidates (fit, variety, effort, replayability, reuse) and recommends ONE, handing off to `arcade-vault-game`. Never writes code, specs or migrations. Opus, read-only except for its to-do and its memory. |
+
+- **`GAMES-TODO.md`** (repo root) is the visible, committed to-do of game suggestions and the **source of truth** for their state: *Pendientes de decisión* → *Aceptados* → *Implementados*, or *Descartados* (with reason). Each game appears once; the agent moves it between sections. Manual edits are respected as decisions.
+- Its persistent memory (`memory: project`) lives in `.claude/agent-memory/game-planner/MEMORY.md` and only holds what the to-do doesn't: user preferences and longer reasons. It never re-suggests a discarded game unless asked.
+- When a game is accepted or implemented via `arcade-vault-game`, tell `game-planner` (or move the item in `GAMES-TODO.md`) so the to-do stays in sync.
 
 ### Gallery rule
 
