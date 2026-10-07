@@ -1,6 +1,6 @@
 # SPEC 11 — Skins de SNAKE (classic, neón, retro)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 09 (snake-game)
 > **Date:** 2026-10-07
 > **Objective:** Que SNAKE se pueda jugar con tres paletas de canvas (`classic` por defecto, `neon` y `retro`) elegibles desde el player, y dejar armada la plataforma de skins (tipos, contrato del motor, registro y selector) que van a reutilizar los demás juegos.
