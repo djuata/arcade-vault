@@ -98,6 +98,7 @@ Keep rules/constants 1:1 (no balance tweaks). Replace: globals → closure; `get
 
 `/spec` has `disable-model-invocation`, so do NOT try to call it. Reproduce its output instead:
 
+0. If `specs/NN-<slug>-game.md` already exists as `Draft` (e.g. promoted from a game jam, `specs/game-jam/`), do NOT rewrite it: read it, check it against the Critical Patterns, fix only what violates them (tell the user what changed), and jump to step 5.
 1. Read `.agents/skills/spec/template.md`, `specs/07-tetris-game.md` and the two most recent specs. Match their language (Spanish), headings and state wording exactly.
 2. Read the source game (`resources/started-games/<NN>-name/`) and `lib/games/registry.ts`. Decide with the user, via `AskUserQuestion`, only what is genuinely open (new catalog entry vs flipping a placeholder, assets strategy, platform gaps). Gallery rule: a game is a NEW catalog entry; never attach it to an existing placeholder without asking.
 3. Next number = highest in `specs/` + 1, two digits; slug `NN-<slug>-game.md`; date from `date +%F`, never guessed.

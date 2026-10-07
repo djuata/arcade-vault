@@ -90,10 +90,23 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 | Agent | Use |
 | ----- | --- |
 | `game-planner` | Plans and decides **which game to add next**: reads the real state (`GAMES.md`, registry, `specs/`, migrations, `resources/started-games/`), scores 2–4 candidates (fit, variety, effort, replayability, reuse) and recommends ONE, handing off to `arcade-vault-game`. Never writes code, specs or migrations. Opus, read-only except for its to-do and its memory. |
+| `game-jam` | Designer for a **game jam** (see below). Launched 3× in parallel by the main thread, each with a brief (theme, slug, name, `cat`, `color`, angle); writes ONE full spec to `specs/game-jam/<slug>/<slug>-game.md` in the format of specs 07–09. Never writes code, migrations or anything else. Opus, no memory. |
 
 - **`GAMES-TODO.md`** (repo root) is the visible, committed to-do of game suggestions and the **source of truth** for their state: *Pendientes de decisión* → *Aceptados* → *Implementados*, or *Descartados* (with reason). Each game appears once; the agent moves it between sections. Manual edits are respected as decisions.
 - Its persistent memory (`memory: project`) lives in `.claude/agent-memory/game-planner/MEMORY.md` and only holds what the to-do doesn't: user preferences and longer reasons. It never re-suggests a discarded game unless asked.
 - When a game is accepted or implemented via `arcade-vault-game`, tell `game-planner` (or move the item in `GAMES-TODO.md`) so the to-do stays in sync.
+
+### Game jam (main thread orchestrates)
+
+Triggered when the user asks for a "game jam sobre <tema>". Subagents can't spawn subagents, so **the main thread is the orchestrator** and `game-jam` is only the designer:
+
+1. **Prepare**: read `GAMES-TODO.md`, `lib/games/registry.ts` and `supabase/migrations/` (taken slugs and `sort_order`, under-represented `cat`/`color`). Get the date with `date +%F`.
+2. **Write 3 distinct briefs**: unique slug (not in `games`, not a placeholder, not in *Descartados*), `nombre`, varied `cat`/`color`, a different **angle** each (e.g. acción/reflejos, puzzle/estrategia, shooter/esquivar), `fecha`, a suggested `sort_order` (distinct per brief) and the list of taken slugs. Show the 3 briefs, one line each.
+3. **Launch** 3 `Agent` calls with `subagent_type: "game-jam"` **in a single message** (parallel).
+4. **Compare**: table with name, `cat`/`color`, pitch, effort and main risk, linking the 3 specs. Ask with `AskUserQuestion` which one wins (or none), then STOP.
+5. **Promote the winner**: NN = highest number in `specs/` + 1. Copy it to `specs/NN-<slug>-game.md` with title `# SPEC NN — …` (drop "(game jam)"), keep `Status: Draft` and the `Game jam:` line as provenance. Leave the 3 `specs/game-jam/` folders untouched as history.
+6. **To-do**: in `GAMES-TODO.md`, the winner goes to *Aceptados* and the losers to *Descartados* with reason `perdió el game jam "<tema>" YYYY-MM-DD`.
+7. **Next step**: "Revisá `specs/NN-…` y, si lo aprobás, invocá `arcade-vault-game`" (it reuses the existing Draft instead of rewriting it).
 
 ### Gallery rule
 
