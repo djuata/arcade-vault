@@ -55,7 +55,7 @@ Do both in the same change. Never one without the other.
 
 - `lib/games/<slug>/` imports NOTHING from `react` or `next/*` (verify with `rg`).
 - State lives in the factory closure. No module-level mutable state, no `document.getElementById`.
-- `initGame()` (on create and on `restart`) emits `onScore(0)`, `onLives(n)`, `onLevel(1)`.
+- `initGame()` (on create and on `restart`) emits `onScore(0)`, `onLevel(1)` and, only if the game has lives, `onLives?.(n)`.
 - `onScore/onLives/onLevel` fire only when the value changes. `onGameOver(finalScore)` fires **exactly once**, immediately.
 - Scores are **integers** in `1..99_999_999` (DB CHECK). Round fractional scoring. Score `0` is not saved.
 
@@ -90,7 +90,7 @@ Keep rules/constants 1:1 (no balance tweaks). Replace: globals → closure; `get
 
 ### Platform gaps: STOP and propose a spec
 
-`GamePlayer` always shows lives (starts at 3) and level. A game without lives/levels, non-4:3 canvas, or touch controls requires changing `GameCallbacks`/`GamePlayer`: that's its own spec, not a workaround inside the engine.
+`onLives` is optional: if the engine never emits it, `GamePlayer` hides the lives stat (Tetris and Snake work this way), so a game without lives needs no platform change. Level is always shown. A game without levels, non-4:3 canvas, or touch controls requires changing `GameCallbacks`/`GamePlayer`: that's its own spec, not a workaround inside the engine.
 
 ## Workflow
 
