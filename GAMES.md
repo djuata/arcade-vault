@@ -1,0 +1,112 @@
+# Juegos implementados — Arcade Vault
+
+Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/registry.ts` (`GAME_ENGINES`) y `playable = true` en la tabla `games` de Supabase, por lo que guardan puntajes en el ranking.
+
+> Actualizado: 2026-10-06 · 4 juegos jugables de 11 en el catálogo.
+
+## Resumen
+
+| # | Juego | Slug | Categoría | Color | Vidas | Spec | Origen |
+| - | ----- | ---- | --------- | ----- | ----- | ---- | ------ |
+| 1 | ROCAS | `rocas` | SHOOTER | yellow | 3 | [05](specs/05-asteroids-game.md) | `resources/started-games/02-asteroids` |
+| 2 | TETRIS | `tetris` | PUZZLE | cyan | — | [07](specs/07-tetris-game.md) | `resources/started-games/03-tetris` |
+| 3 | ARKANOID | `arkanoid` | ARCADE | yellow | 3 | [08](specs/08-arkanoid-game.md) | `resources/started-games/04-arkanoid` |
+| 4 | SNAKE | `snake` | ARCADE | green | — | [09](specs/09-snake-game.md) | Implementación propia (sprites de frutas) |
+
+Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado a 4:3. La plataforma (`GamePlayer`) pone el HUD, la pausa con `P`, el modal "FIN DEL JUEGO" y el guardado del puntaje.
+
+---
+
+## ROCAS (Asteroids)
+
+*Pulveriza asteroides en gravedad cero.*
+
+- **Ruta:** `/games/rocas` · **Motor:** `lib/games/asteroids/` (`createAsteroidsGame`)
+- **Cover:** `.cover-rocas` · **Migración:** `20261005171227_seed_games.sql` (fila del catálogo inicial)
+
+| Control | Acción |
+| ------- | ------ |
+| `←` / `→` | Rotar la nave |
+| `↑` | Propulsar |
+| `Espacio` | Disparar |
+
+**Reglas**
+- 3 vidas; reaparición tras 2 s.
+- Arranca con 4 asteroides; cada asteroide se divide al recibir un disparo (grande → mediano → pequeño).
+- Puntos: grande 20, mediano 50, pequeño 100.
+- Power-up de **disparo triple** (5 s): 15 % de probabilidad al destruir un asteroide, garantizado cada 5 destrucciones.
+- Limpiar el campo sube de nivel.
+
+---
+
+## TETRIS
+
+*Encaja las piezas y limpia líneas sin tocar el techo.*
+
+- **Ruta:** `/games/tetris` · **Motor:** `lib/games/tetris/` (`createTetrisGame`)
+- **Cover:** `.cover-tetris` · **Migración:** `20261005193646_add_tetris_game.sql`
+
+| Control | Acción |
+| ------- | ------ |
+| `←` / `→` | Mover la pieza (con autorrepetición) |
+| `↓` | Caída suave |
+| `↑` / `X` | Rotar (con wall kicks) |
+| `Espacio` | Caída instantánea |
+
+**Reglas**
+- Tablero de 10×20, con vista previa de la siguiente pieza y pieza fantasma.
+- 7 piezas clásicas más la pieza "N" (tuerca) del juego original.
+- Puntos por líneas: 1 → 100, 2 → 300, 3 → 500, 4 → 800. Caída suave +1 y caída instantánea +2 por celda.
+- Sube de nivel cada 10 líneas; la caída acelera de 1000 ms a un mínimo de 100 ms (−90 ms por nivel).
+- Sin vidas: la partida termina cuando una pieza no cabe al aparecer.
+
+---
+
+## ARKANOID
+
+*Rompe el muro de bloques sin dejar caer la pelota.*
+
+- **Ruta:** `/games/arkanoid` · **Motor:** `lib/games/arkanoid/` (`createArkanoidGame`)
+- **Cover:** `.cover-arkanoid` · **Migración:** `20261005203853_add_arkanoid_game.sql`
+- **Assets:** `public/games/arkanoid/spritesheet-breakout.png`
+
+| Control | Acción |
+| ------- | ------ |
+| `←` / `→` | Mover la paleta |
+| Mouse | La paleta sigue al cursor |
+
+**Reglas**
+- 3 vidas; se pierde una cuando la pelota cae.
+- 5 niveles, cada uno con su patrón de bloques y una pelota más rápida.
+- 10 puntos por bloque.
+- Superar el nivel 5 termina la partida.
+
+---
+
+## SNAKE
+
+*Come frutas, crece y no te muerdas la cola.*
+
+- **Ruta:** `/games/snake` · **Motor:** `lib/games/snake/` (`createSnakeGame`)
+- **Cover:** `.cover-snake-fruit` · **Migración:** `20261006183212_add_snake_game.sql`
+- **Assets:** `public/games/snake/fruits.png`
+
+| Control | Acción |
+| ------- | ------ |
+| `↑` `↓` `←` `→` / `W` `A` `S` `D` | Cambiar de dirección (hasta 2 giros en cola) |
+
+**Reglas**
+- Tablero de 20×15 celdas; la serpiente empieza con largo 3.
+- 10 puntos por fruta; cada fruta alarga la serpiente.
+- Sube de nivel cada 5 frutas; el paso acelera de 150 ms a un mínimo de 70 ms (−10 ms por nivel).
+- Sin vidas: chocar con una pared o con uno mismo termina la partida.
+
+---
+
+## Catálogo sin motor (aún no jugables)
+
+Muestran la arena simulada y **no** aceptan puntajes (RLS): `bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`.
+
+## Cómo agregar un juego
+
+Usá el skill `arcade-vault-game`: primero escribe la spec en `specs/NN-<slug>-game.md` (Draft) y espera aprobación; después crea el motor, lo registra en `GAME_ENGINES`, aplica la migración con `playable = true` y agrega la clase `.cover-*`. Al terminar, sumá el juego a este archivo.
