@@ -1,0 +1,2 @@
+- [Criterio de planificación](planning-criteria.md) — default: variedad + reutilización; resources/ ya sin juegos por portar
+- [Ideas autodescartadas](self-discarded-ideas.md) — Pong/Invaders/Pac-Man/Frogger chocan con placeholders
