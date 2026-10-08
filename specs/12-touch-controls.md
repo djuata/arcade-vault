@@ -1,6 +1,6 @@
 # SPEC 12 — Controles táctiles para mobile
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 07 (tetris-game), SPEC 08 (arkanoid-game), SPEC 09 (snake-game), SPEC 11 (snake-skins)
 > **Date:** 2026-10-08
 > **Objective:** Que los juegos con motor se puedan jugar en dispositivos táctiles con un panel de controles (D-pad a la izquierda y botones de acción a la derecha) dentro del marco CRT, debajo del canvas, que despacha eventos de teclado sintéticos sin tocar los motores.
