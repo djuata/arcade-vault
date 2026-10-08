@@ -60,7 +60,7 @@ Pages are thin async Server Components that fetch data and hand it to a componen
 ### Game engines
 
 - Every game is a **pure-TS canvas engine** in `lib/games/<slug>/` (no React), exposing a factory `create<Name>Game(canvas, callbacks): GameEngine`. Contracts in `lib/games/types.ts`: `GameEngine` (`pause/resume/restart/destroy`) and `GameCallbacks` (`onScore`, `onLevel`, `onGameOver`, optional `onLives` — when an engine never emits it, the HUD hides lives).
-- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake`. Catalog entries without an engine render the mock arena. **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one. Candidate games live in **`GAMES-TODO.md`** (maintained by the `game-planner` agent).
+- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake` — the whole catalog (spec 13 removed the engine-less placeholders). **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one. Candidate games live in **`GAMES-TODO.md`** (maintained by the `game-planner` agent).
 - `components/player/GameCanvas.tsx` mounts the engine (fixed 800×600, CSS-scaled to 4:3) and destroys it on unmount; `callbacks` must be referentially stable. `components/player/GamePlayer.tsx` owns the chrome: HUD, pause (`P`), "FIN DEL JUEGO" modal, and inserting the score into `scores` via the browser client. Engines draw only the game.
 - **Invariant**: slug = `games.id` = route segment = `GAME_ENGINES` key = `scores.game_id` = engine folder. And `GAME_ENGINES[slug]` exists **⇔** `games.playable = true` — always change both together.
 - **Touch controls (spec 12)**: `components/player/TouchControls.tsx` renders a D-pad + action buttons inside `.crt`, below the canvas, only on `@media (pointer: coarse)`. It dispatches synthetic `KeyboardEvent`s on `window`, so engines must read **only `e.code`** (never `e.key`/`isTrusted`). Each game's layout lives in `lib/games/<slug>/touch.ts` and is registered in `GAME_TOUCH_CONTROLS` (`lib/games/registry.ts`); types and the D-pad math are in `lib/games/touch-controls.ts`. An engine without a layout shows "REQUIERE TECLADO".
@@ -103,7 +103,7 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 Triggered when the user asks for a "game jam sobre <tema>". Subagents can't spawn subagents, so **the main thread is the orchestrator** and `game-jam` is only the designer:
 
 1. **Prepare**: read `GAMES-TODO.md`, `lib/games/registry.ts` and `supabase/migrations/` (taken slugs and `sort_order`, under-represented `cat`/`color`). Get the date with `date +%F`.
-2. **Write 3 distinct briefs**: unique slug (not in `games`, not a placeholder, not in *Descartados*), `nombre`, varied `cat`/`color`, a different **angle** each (e.g. acción/reflejos, puzzle/estrategia, shooter/esquivar), `fecha`, a suggested `sort_order` (distinct per brief) and the list of taken slugs. Show the 3 briefs, one line each.
+2. **Write 3 distinct briefs**: unique slug (not in `games`, not in *Descartados*), `nombre`, varied `cat`/`color`, a different **angle** each (e.g. acción/reflejos, puzzle/estrategia, shooter/esquivar), `fecha`, a suggested `sort_order` (distinct per brief) and the list of taken slugs. Show the 3 briefs, one line each.
 3. **Launch** 3 `Agent` calls with `subagent_type: "game-jam"` **in a single message** (parallel).
 4. **Compare**: table with name, `cat`/`color`, pitch, effort and main risk, linking the 3 specs. Ask with `AskUserQuestion` which one wins (or none), then STOP.
 5. **Promote the winner**: NN = highest number in `specs/` + 1. Copy it to `specs/NN-<slug>-game.md` with title `# SPEC NN — …` (drop "(game jam)"), keep `Status: Draft` and the `Game jam:` line as provenance. Leave the 3 `specs/game-jam/` folders untouched as history.
@@ -112,7 +112,7 @@ Triggered when the user asks for a "game jam sobre <tema>". Subagents can't spaw
 
 ### Gallery rule
 
-Arcade Vault **adds** games; it never repurposes existing catalog placeholders (`bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`) without asking. A new game is a new catalog row with its own slug, `sort_order` and `.cover-*` class.
+Arcade Vault **adds** games: a new game is a new catalog row with its own slug, `sort_order` and `.cover-*` class, created already `playable` together with its engine. The catalog only holds playable games — no placeholder rows (spec 13 deleted them).
 
 ### MCP servers
 

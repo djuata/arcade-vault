@@ -1,15 +1,17 @@
 ---
 name: self-discarded-ideas
-description: Ideas de juegos que el game-planner descartó por su cuenta antes de proponerlas (choque con placeholders, VERSUS), con motivo
+description: Ideas que el game-planner descartó por chocar con placeholders del catálogo; REHABILITADAS el 2026-10-08 (SPEC 13 borró los placeholders)
 metadata:
   type: project
 ---
 
-Ideas descartadas por el planner (2026-10-07), no llegaron al to-do:
+**Rehabilitadas el 2026-10-08 (SPEC 13).** La persona decidió borrar del catálogo los 7 placeholders sin motor (`bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`). El motivo de descarte ya no existe: estas ideas vuelven a ser candidatas normales y se evalúan con los criterios de siempre.
 
-- Pong vs CPU (cualquier slug nuevo): es el mismo concepto que el placeholder `duelo-pixel` (VERSUS). Sumarlo como juego nuevo duplicaría el catálogo; hacerlo jugable en `duelo-pixel` requiere aprobación de la persona.
-- Space Invaders, Galaga/Galaxian, Pac-Man, Frogger, Breakout/Tetris clones, Air hockey: chocan con `invasores`, `gloton`, `ranaria`, `bloque-buster`, `caida`, `duelo-pixel`. Mismo motivo.
+Historial (2026-10-07), descartadas en su momento por chocar con un placeholder:
+
+- Pong vs CPU: mismo concepto que `duelo-pixel` (VERSUS).
+- Space Invaders, Galaga/Galaxian, Pac-Man, Frogger, Breakout/Tetris clones, Air hockey: chocaban con `invasores`, `gloton`, `ranaria`, `bloque-buster`, `caida`, `duelo-pixel`.
 - 2026-10-07: la persona pidió una lista amplia (20); quedaron todas en Pendientes. MOTOS (22) superó a COLUMNAS (21) por ser el primer VERSUS sin tocar placeholders.
 
-**Why:** la regla de galería prohíbe reutilizar placeholders sin aprobación, y un juego nuevo con la misma mecánica que un placeholder confunde el catálogo.
-**How to apply:** no reevaluar estas ideas salvo que la persona apruebe activar un placeholder; en ese caso VERSUS (`duelo-pixel`) es el hueco de categoría más grande. Ver [[planning-criteria]].
+**Why:** la regla de galería prohibía reutilizar placeholders; sin placeholders, solo queda "cada juego es una fila nueva con su slug".
+**How to apply:** podés proponer estas ideas como cualquier otra. Frogger ya está cubierto por CROAC (SPEC 10) y Breakout/Tetris por ARKANOID/TETRIS, así que siguen siendo poco variados; Pong/VERSUS, Invaders y Pac-Man son los huecos reales. Ver [[planning-criteria]].

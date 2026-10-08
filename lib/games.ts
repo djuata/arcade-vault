@@ -11,7 +11,7 @@ export interface Game {
   short: string;
   long: string;
   cat: GameCategory;
-  cover: string; // clase CSS, ej. "cover-bricks"
+  cover: string; // clase CSS, ej. "cover-rocas"
   color: GameAccent;
   playable: boolean; // true solo para juegos con motor real (puede guardar puntajes)
   best: number; // 0 si el juego no tiene puntajes

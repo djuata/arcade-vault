@@ -2,7 +2,7 @@
 
 Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/registry.ts` (`GAME_ENGINES`) y `playable = true` en la tabla `games` de Supabase, por lo que guardan puntajes en el ranking.
 
-> Actualizado: 2026-10-08 · 4 juegos jugables de 11 en el catálogo.
+> Actualizado: 2026-10-08 · 4 juegos jugables de 4 en el catálogo.
 
 ## Resumen
 
@@ -113,10 +113,6 @@ En dispositivos táctiles (`pointer: coarse`) aparece un panel de controles dent
 - Sin vidas: chocar con una pared o con uno mismo termina la partida.
 
 ---
-
-## Catálogo sin motor (aún no jugables)
-
-Muestran la arena simulada y **no** aceptan puntajes (RLS): `bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`.
 
 ## Cómo agregar un juego
 

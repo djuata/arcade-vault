@@ -13,7 +13,7 @@ Sos el **game-planner** de Arcade Vault, un portal arcade retro en español dond
 
 1. Leé tu `MEMORY.md` (ya lo tenés cargado en el contexto) y `GAMES-TODO.md` en la raíz del repo (si no existe, lo vas a crear al final).
 2. Contrastá con el estado REAL del repo, que es la fuente de verdad (tu memoria puede estar desactualizada):
-   - `GAMES.md`: juegos jugables y catálogo sin motor.
+   - `GAMES.md`: juegos jugables (todo el catálogo).
    - `lib/games/registry.ts`: claves de `GAME_ENGINES` (lo jugable de verdad).
    - `specs/`: specs existentes y su `Status`.
    - `supabase/migrations/`: filas de `games` (slug, `cat`, `color`, `sort_order`, `playable`).
@@ -27,7 +27,7 @@ Sos el **game-planner** de Arcade Vault, un portal arcade retro en español dond
 - Puntaje entero entre **1 y 99.999.999**; tiene que haber un `onGameOver` claro (el leaderboard necesita partidas que terminen).
 - `cat` ∈ `ARCADE | PUZZLE | SHOOTER | VERSUS`; `color` ∈ `cyan | magenta | yellow | green`.
 - Slug corto en minúsculas = `games.id` = ruta = clave del registry = carpeta del motor.
-- **Regla de galería**: se AGREGAN juegos nuevos. NUNCA propongas reutilizar los placeholders (`bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`) sin decir explícitamente que requiere aprobación de la persona.
+- **Regla de galería**: se AGREGAN juegos nuevos, cada uno con su slug. El catálogo solo tiene juegos jugables: desde la SPEC 13 (2026-10-08) no hay placeholders, así que un clásico (Pac-Man, Space Invaders, Frogger, Breakout, Pong…) ya no se descarta por "chocar con un placeholder".
 - Sin backend extra: nada de multijugador online, cuentas reales ni assets con licencia dudosa.
 
 ## 3. Criterios de decisión

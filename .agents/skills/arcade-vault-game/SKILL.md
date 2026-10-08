@@ -26,14 +26,11 @@ This skill is spec-first: it writes the spec, **pauses for the user's approval**
 | Engine | `lib/games/<slug>/` (pure TS) | Always |
 | Registry | `lib/games/registry.ts` (one line in `GAME_ENGINES`) | Always |
 | Touch layout | `lib/games/<slug>/touch.ts` + one line in `GAME_TOUCH_CONTROLS` | Always |
-| `playable = true` | New migration in `supabase/migrations/` + `apply_migration` | Always |
-| `games` row | Same migration, `insert` | Only if the slug is NOT in the catalog |
-| Cover CSS | `.cover-*` in `app/globals.css` | Only for a brand-new catalog game |
+| `games` row (`playable = true`) | New migration in `supabase/migrations/` (`insert`) + `apply_migration` | Always |
+| Cover CSS | `.cover-*` in `app/globals.css` | Always |
 | `database.types.ts` | `generate_typescript_types` | Only if the schema changes (data-only: never) |
 | Games doc | `GAMES.md` (summary row + game section) | Always |
 | `GamePlayer`, Library, Detail, Hall of Fame | — | **Never**: all DB-driven |
-
-Catalog slugs without engine yet: `bloque-buster` (04-arkanoid), `caida` (03-tetris), `serpentina`, `gloton`, `invasores`, `ranaria`, `duelo-pixel`. They already exist in `games`: only flip `playable`.
 
 ## Critical Patterns
 
@@ -102,7 +99,7 @@ Keep rules/constants 1:1 (no balance tweaks). Replace: globals → closure; `get
 
 0. If `specs/NN-<slug>-game.md` already exists as `Draft` (e.g. promoted from a game jam, `specs/game-jam/`), do NOT rewrite it: read it, check it against the Critical Patterns, fix only what violates them (tell the user what changed), and jump to step 5.
 1. Read `.agents/skills/spec/template.md`, `specs/07-tetris-game.md` and the two most recent specs. Match their language (Spanish), headings and state wording exactly.
-2. Read the source game (`resources/started-games/<NN>-name/`) and `lib/games/registry.ts`. Decide with the user, via `AskUserQuestion`, only what is genuinely open (new catalog entry vs flipping a placeholder, assets strategy, platform gaps). Gallery rule: a game is a NEW catalog entry; never attach it to an existing placeholder without asking.
+2. Read the source game (`resources/started-games/<NN>-name/`) and `lib/games/registry.ts`. Decide with the user, via `AskUserQuestion`, only what is genuinely open (assets strategy, platform gaps). Gallery rule: a game is a NEW catalog entry with its own slug; the catalog has no placeholder rows.
 3. Next number = highest in `specs/` + 1, two digits; slug `NN-<slug>-game.md`; date from `date +%F`, never guessed.
 4. Write `specs/NN-<slug>-game.md` with state `Draft` (never `Approved`): header, scope (with explicit "not included"), data model, numbered implementation plan following Phase B, boolean acceptance criteria, decisions, risks. Do not write code.
 5. **STOP.** Announce the path and ask the user to review and approve. Wait. Do not touch `lib/`, `app/`, `supabase/` until they confirm.
@@ -120,7 +117,7 @@ Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.s
    - valid insert for `<slug>` → `201`; invalid (`score` 0, name > 10 chars, unknown `game_id`) → rejected.
    - delete test rows with `execute_sql`.
 6. **Manual run** (`npm run dev`): play, die, save, check `/games/<slug>` and `/hall-of-fame`.
-7. **Document**: update `GAMES.md` — add a row to the summary table, a section following the existing ones (route, engine, cover, migration, assets, controls table, rules), remove the slug from "Catálogo sin motor" if it was a placeholder, and bump the date and playable count. Take controls and rules from the engine code (`input.ts`, `constants.ts`, `engine.ts`), not from the spec.
+7. **Document**: update `GAMES.md` — add a row to the summary table, a section following the existing ones (route, engine, cover, migration, assets, controls table, rules), and bump the date and playable count. Take controls and rules from the engine code (`input.ts`, `constants.ts`, `engine.ts`), not from the spec.
 
 ## Acceptance Checklist
 

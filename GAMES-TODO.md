@@ -1,6 +1,6 @@
 # To-do de juegos — Arcade Vault
 
-> Mantenido por el agente `game-planner`. Última actualización: 2026-10-07.
+> Mantenido por el agente `game-planner`. Última actualización: 2026-10-08.
 > Para decidir: aceptar → mover a "Aceptados"; rechazar → mover a "Descartados" con el motivo.
 
 ## Pendientes de decisión
@@ -18,7 +18,7 @@
   - Por qué: Centipede, shooter clásico de alto puntaje con hongos, araña y ciempiés que se parte.
   - Riesgo: segmentación del ciempiés al recibir disparos y su recorrido entre hongos.
 - [ ] **TANQUES** (`tanques`) — VERSUS / yellow · puntaje 19/25 · sugerido 2026-10-07
-  - Por qué: duelo de tanques tipo Combat contra la CPU en arena con muros; otro VERSUS sin tocar `duelo-pixel`.
+  - Por qué: duelo de tanques tipo Combat contra la CPU en arena con muros; otro VERSUS (la categoría no tiene juegos jugables).
   - Riesgo: pathfinding de la CPU y rebote de balas en muros.
 - [ ] **HÉLICE** (`helice`) — ARCADE / cyan · puntaje 19/25 · sugerido 2026-10-07
   - Por qué: helicóptero en cueva infinita de un solo botón; partidas de segundos, adictivo para el top 10.
@@ -43,7 +43,7 @@
   - Riesgo: poca profundidad; sin audio pierde gracia.
 - [ ] **CARRETERA** (`carretera`) — ARCADE / cyan · puntaje 17/25 · sugerido 2026-10-07
   - Por qué: carreras verticales tipo Road Fighter esquivando autos con combustible; puntaje por distancia.
-  - Riesgo: scroll y spawns de tráfico balanceados; temática cercana a `ranaria` (autos), aunque la mecánica es distinta.
+  - Riesgo: scroll y spawns de tráfico balanceados; temática cercana a CROAC (autos), aunque la mecánica es distinta.
 - [ ] **DEFENSOR** (`defensor`) — SHOOTER / cyan · puntaje 16/25 · sugerido 2026-10-07
   - Por qué: Defender, shooter de scroll horizontal con radar y rescate.
   - Riesgo: mundo con scroll envolvente, radar y varios tipos de enemigos: motor costoso.
