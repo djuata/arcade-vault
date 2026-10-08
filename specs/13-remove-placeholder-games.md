@@ -87,7 +87,7 @@ Antes de escribir código, consultar en `node_modules/next/dist/docs/` lo necesa
 
 1. **Precondición.** Con `execute_sql`, volver a contar los scores de los 7 ids. Si alguno tiene scores, frenar y preguntar.
 2. **Migración.** Crear `supabase/migrations/<YYYYMMDDHHMMSS>_remove_placeholder_games.sql` con el SQL del modelo de datos (timestamp de `date +%Y%m%d%H%M%S`) y aplicarla con `apply_migration` con el mismo SQL. Prueba: `execute_sql` devuelve exactamente 4 filas en `games`, todas `playable`, y los scores existentes siguen ahí.
-3. **CSS.** Borrar de `app/globals.css` las 7 clases de portada con sus pseudo-elementos y los `@keyframes` que queden sin uso. Actualizar el comentario de `lib/games.ts`. Prueba: `rg 'cover-(bricks|tetro|snake\b|glot|invaders|rana|duelo)' app components lib` sin resultados; las portadas de los 4 juegos se ven igual en `/games`.
+3. **CSS.** Borrar de `app/globals.css` las 7 clases de portada con sus pseudo-elementos y los `@keyframes` que queden sin uso. Actualizar el comentario de `lib/games.ts`. Prueba: `rg 'cover-(bricks|tetro|snake([^-]|$)|glot|invaders|rana|duelo)' app components lib` sin resultados (`snake([^-]|$)` para no encontrar `cover-snake-fruit`); las portadas de los 4 juegos se ven igual en `/games`.
 4. **Documentación de plataforma.** `CLAUDE.md` (*Gallery rule*: "Arcade Vault **adds** games: a new game is a new catalog row with its own slug, `sort_order` and `.cover-*` class, created already `playable`"), `GAMES.md`, `SKILL.md`, `game-planner.md`, `game-jam.md`. Prueba: `rg --hidden 'bloque-buster|serpentina|gloton|invasores|ranaria|duelo-pixel|\bcaida\b' --glob '!resources/**' --glob '!specs/**' --glob '!supabase/migrations/2026100517*'` solo devuelve las notas históricas de `GAMES-TODO.md` y de la memoria del planner que este paso deja a propósito.
 5. **Memoria y to-do del planner.** En `self-discarded-ideas.md`, marcar como rehabilitadas (2026-10-08, SPEC 13) las ideas descartadas por chocar con un placeholder. En `GAMES-TODO.md`, ajustar las notas de "Por qué"/"Riesgo" que comparan contra `duelo-pixel` y `ranaria`.
 6. **SPEC 10.** En `specs/10-croac-game.md` (sigue `Draft`): borrar el punto "RANARIA no se toca", los criterios sobre `ranaria` y la arena falsa, y cambiar "12 filas en `games`" por "5 filas". La prueba de RLS que usaba `game_id = 'ranaria'` pasa a usar un id inexistente.
@@ -115,7 +115,7 @@ Antes de escribir código, consultar en `node_modules/next/dist/docs/` lo necesa
 
 **Código y documentación**
 
-- [ ] `rg 'cover-(bricks|tetro|snake\b|glot|invaders|rana|duelo)' app components lib` no devuelve resultados.
+- [ ] `rg 'cover-(bricks|tetro|snake([^-]|$)|glot|invaders|rana|duelo)' app components lib` no devuelve resultados.
 - [ ] `CLAUDE.md`, `SKILL.md`, `game-planner.md` y `game-jam.md` no mencionan placeholders ni prohíben reutilizarlos.
 - [ ] `GAMES.md` no tiene la sección "Catálogo sin motor" y dice "4 juegos jugables de 4 en el catálogo".
 - [ ] `specs/10-croac-game.md` sigue en `Draft` y no depende de que `ranaria` exista.

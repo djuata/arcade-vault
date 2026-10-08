@@ -1,7 +1,7 @@
 # SPEC 10 — CROAC
 
 > **Status:** Draft
-> **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard)
+> **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard), SPEC 12 (touch-controls), SPEC 13 (remove-placeholder-games)
 > **Date:** 2026-10-07
 > **Objective:** Agregar CROAC como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): un Frogger clásico y fiel con carretera, río, cinco nenúfares, temporizador por rana y tres vidas, con su ranking en Supabase.
 > **Game jam:** "Cruza la carretera y el río sin convertirte en papilla" — ángulo: acción / reflejos
@@ -35,7 +35,8 @@ Criterios elegidos por el diseñador (no hubo preguntas, según las reglas del j
 - Migración de datos `supabase/migrations/<version>_add_croac_game.sql`, que inserta la fila `croac` en `games` con `playable = true`. Sin cambios de esquema ni de `lib/supabase/database.types.ts`.
 - `lib/games/croac/`, en TypeScript puro y sin React, con `constants.ts`, `input.ts`, `lanes.ts`, `rules.ts`, `render.ts` y `engine.ts` (`createCroacGame`).
 - Registro en `lib/games/registry.ts`: `croac: createCroacGame`.
-- `app/globals.css`: clase de cover `.cover-croac` en CSS puro, visualmente distinta de `.cover-rana`.
+- Layout táctil `lib/games/croac/touch.ts` (`CROAC_TOUCH_CONTROLS`), registrado en `GAME_TOUCH_CONTROLS` (SPEC 12): D-pad `↑` `↓` `←` `→` sin diagonales, sin autorrepetición y sin botones de acción.
+- `app/globals.css`: clase de cover `.cover-croac` en CSS puro, visualmente distinta de las demás portadas.
 - `GAMES.md`: fila en la tabla resumen y sección del juego (controles y reglas tomados del código), según el paso 7 de la Fase B de la skill.
 - Verificación de RLS contra la API REST con la publishable key, y limpieza de las filas de prueba.
 
@@ -49,7 +50,7 @@ Criterios elegidos por el diseñador (no hubo preguntas, según las reglas del j
 - Animación de "rana en casa" con pausa, pantalla de nivel completado o pantalla de victoria. Al llenar las 5 bahías, el nivel sube sin interrumpir el juego.
 - Más carriles, diseños de carriles distintos por nivel o un tope de niveles. A partir del nivel 2 solo cambia la velocidad, que tiene un techo.
 - Salto continuo manteniendo la tecla (auto-repeat): cada salto es una pulsación.
-- Control con mouse, controles táctiles o un gamepad. El aviso "REQUIERE TECLADO" de `GameCanvas` cubre el caso táctil.
+- Control con mouse, gamepad o gestos de swipe sobre el canvas. El táctil se cubre con el panel de la SPEC 12.
 - Texto dentro del canvas: el canvas no dibuja puntaje, nivel, vidas, `PAUSA`, `GAME OVER`, "TIEMPO" ni los puntos ganados.
 - Cambios en `GamePlayer`, `GameCanvas` o `GameCallbacks`.
 - Soporte HiDPI/retina, pantalla completa y canvas con proporción distinta de 4:3.
@@ -244,9 +245,9 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
    - Cinco nenúfares verdes en el borde superior.
    - `drop-shadow` magenta.
 
-   Tiene que ser visualmente distinto de `.cover-rana` (franjas cian horizontales con un círculo verde). Prueba manual: asignar la clase de forma temporal a un elemento `.cover-bg` y revisarla en 375 px y en desktop. El elemento temporal no se commitea.
+   Tiene que ser visualmente distinto de las portadas existentes (`.cover-rocas`, `.cover-tetris`, `.cover-arkanoid`, `.cover-snake-fruit`). Prueba manual: asignar la clase de forma temporal a un elemento `.cover-bg` y revisarla en 375 px y en desktop. El elemento temporal no se commitea.
 8. **Registro y migración, en este orden.**
-   1. Agregar `croac: createCroacGame` en `lib/games/registry.ts`.
+   1. Crear `lib/games/croac/touch.ts` con `CROAC_TOUCH_CONTROLS` (D-pad `↑` `ArrowUp`, `↓` `ArrowDown`, `←` `ArrowLeft`, `→` `ArrowRight`; `buttons: []`; sin `diagonals` ni `repeat`). Agregar `croac: createCroacGame` en `GAME_ENGINES` y `croac: CROAC_TOUCH_CONTROLS` en `GAME_TOUCH_CONTROLS` de `lib/games/registry.ts`.
    2. Consultar `select id, sort_order from public.games order by 2`.
    3. Aplicar con `apply_migration` el insert del Data model (nombre `add_croac_game`).
    4. Leer la versión real asignada (`select version, name from supabase_migrations.schema_migrations order by version desc limit 1`) y guardar el mismo SQL en `supabase/migrations/<version>_add_croac_game.sql`.
@@ -258,7 +259,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
    - Se rechazan un `score` `0`, un `player_name` de 11 caracteres y un `game_id` inexistente.
    - Al terminar, borrar las filas de prueba con `execute_sql`.
 10. **Documentación y pase final.**
-    - Agregar CROAC a `GAMES.md`, con los controles y las reglas tomados de `input.ts`, `constants.ts` y `engine.ts`.
+    - Agregar CROAC a `GAMES.md`, con los controles, la línea **Táctil** y las reglas tomados de `input.ts`, `touch.ts`, `constants.ts` y `engine.ts`.
     - Recorrer los criterios de aceptación en `npm run dev`, incluidos el doble montaje de Strict Mode, la navegación de ida y vuelta y la pestaña en segundo plano.
     - Revisar la consola del navegador.
     - Correr `npm run lint` y `npx tsc --noEmit`.
@@ -303,7 +304,8 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - [ ] "JUGAR DE NUEVO" deja la partida en puntaje 0, nivel 1, 3 vidas, bahías vacías, carriles en su posición y velocidad iniciales, y el juego corriendo.
 - [ ] Al salir con SALIR y volver a entrar (y bajo Strict Mode en `npm run dev`), cada tecla mueve la rana una sola vez y no quedan listeners de teclado activos fuera de `/games/croac/play`.
 - [ ] Volver a la pestaña tras tenerla en segundo plano no teletransporta los carriles, no arrastra a la rana fuera del canvas de golpe ni consume varios segundos del temporizador.
-- [ ] En un ancho de 375 px el canvas escala sin scroll horizontal y mantiene la proporción 4:3; en emulación `pointer: coarse` aparece "REQUIERE TECLADO".
+- [ ] En un ancho de 375 px el canvas escala sin scroll horizontal y mantiene la proporción 4:3; en emulación `pointer: coarse` aparece el panel táctil (D-pad de 4 direcciones, sin botones) y no aparece "REQUIERE TECLADO".
+- [ ] En emulación touch, cada toque en una dirección del D-pad hace exactamente un salto; mantenerlo no encadena saltos, y tocar el centro (zona muerta) no hace nada.
 
 **Ranking y calidad**
 
@@ -359,7 +361,8 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - **Diseños de carriles distintos por nivel:** multiplica el balanceo manual. Por ahora, la velocidad alcanza como progresión.
 - **Pantalla de "nivel completado" o de victoria:** necesitaría pausar el juego y dibujar texto, y la plataforma ya muestra el nivel. Un modal de victoria sería un cambio de `GameCallbacks`.
 - **Mostrar el tiempo en el HUD de la plataforma:** exigiría un callback nuevo (`onTime`) y cambiar `GamePlayer`. Según las reglas del jam, se simplifica con una barra dentro del canvas.
-- **Controles táctiles (botones en pantalla o swipe):** son un cambio de plataforma. Se mantiene el aviso "REQUIERE TECLADO".
+- **Sí: layout táctil como SNAKE** (D-pad de 4 direcciones, sin diagonales ni botones). Una diagonal dispararía dos saltos a la vez, y `Space` no tiene acción. Cada toque es un salto: el motor ignora `repeat`, así que no se marca `repeat`.
+- **Swipe sobre el canvas:** obligaría a tocar el motor o la plataforma; el panel de la SPEC 12 ya alcanza.
 - **Mouse para saltar (clic en la dirección):** no aporta a un juego de reflejos con cuatro direcciones y duplica el input.
 - **Sprites PNG de rana y vehículos:** habría que revisar licencias y agregar carga asíncrona y respaldo. Las primitivas de canvas alcanzan para la estética neón.
 - **Tráfico aleatorio (huecos sorteados):** el ranking sería menos justo y no se podría reproducir un bug.
@@ -398,7 +401,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - Sprites o assets binarios de cualquier tipo.
 - Mosca bonus, rana dama, cocodrilos, serpientes, nutrias, vida extra y diseños de carriles por nivel.
 - Pantallas de nivel completado o de victoria, y cualquier cambio en `GamePlayer`, `GameCanvas` o `GameCallbacks` (incluido un callback de tiempo).
-- Controles táctiles, mouse o gamepad.
+- Mouse, gamepad o swipe sobre el canvas.
 - Cambios de esquema, tablas nuevas, validación del puntaje en el servidor o regenerar `database.types.ts`.
 - Mover `createInput` a un módulo compartido.
 - HiDPI, canvas con otra proporción o pantalla completa.
