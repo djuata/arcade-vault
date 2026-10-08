@@ -1,6 +1,6 @@
 # SPEC 13 — Quitar del catálogo los juegos sin motor
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 06 (games-table-and-leaderboard), SPEC 12 (touch-controls)
 > **Date:** 2026-10-08
 > **Objective:** Que el catálogo muestre solo juegos jugables, borrando de Supabase las 7 filas placeholder sin motor y todo lo que existe solo para ellas (clases `.cover-*`, reglas y listas en la documentación).
