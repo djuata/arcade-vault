@@ -1,2 +1,2 @@
 - [Criterio de planificación](planning-criteria.md) — default: variedad + reutilización; resources/ ya sin juegos por portar
-- [Ideas autodescartadas](self-discarded-ideas.md) — Pong/Invaders/Pac-Man/Frogger chocan con placeholders
+- [Ideas autodescartadas](self-discarded-ideas.md) — Pong/Invaders/Pac-Man/Frogger: rehabilitadas 2026-10-08 (SPEC 13 borró los placeholders)

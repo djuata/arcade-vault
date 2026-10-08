@@ -3,7 +3,7 @@
 > **Status:** Draft
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard)
 > **Date:** 2026-10-07
-> **Objective:** Agregar CROAC como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): un Frogger clásico y fiel con carretera, río, cinco nenúfares, temporizador por rana y tres vidas, con su ranking en Supabase y sin tocar RANARIA.
+> **Objective:** Agregar CROAC como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): un Frogger clásico y fiel con carretera, río, cinco nenúfares, temporizador por rana y tres vidas, con su ranking en Supabase.
 > **Game jam:** "Cruza la carretera y el río sin convertirte en papilla" — ángulo: acción / reflejos
 
 ---
@@ -15,14 +15,14 @@ Arcade Vault es una galería que crece: cada juego nuevo **suma** una entrada. E
 Cinco puntos de esta spec no son obvios:
 
 - **No hay código fuente que portar.** No existe `resources/started-games/` de Frogger. Las reglas, los carriles, las velocidades, el puntaje y las colisiones se **definen en esta spec** con números concretos, como en la SPEC 09. Por eso la sección de Decisiones es larga.
-- **RANARIA no se toca.** `ranaria` es un placeholder del catálogo (`cover-rana`, `playable = false`, `sort_order = 7`) cuya descripción es un Frogger. Sigue siendo un placeholder con arena falsa. Se aplica la regla de galería, igual que con CAÍDA (SPEC 07), BLOQUE BUSTER (SPEC 08) y SERPENTINA (SPEC 09). A cambio, la galería va a tener dos juegos de ranas: uno jugable y un placeholder.
+- **Sin placeholder de ranas.** Hasta la SPEC 13 existía `ranaria`, un placeholder sin motor con descripción de Frogger; la SPEC 13 (2026-10-08) lo borró junto con los demás. CROAC es una entrada nueva y el único juego de ranas del catálogo.
 - **La rana tiene dos sistemas de movimiento.** En tierra salta por una grilla de 40 px. En el río la arrastra el tronco o la tortuga, así que su `x` deja de estar alineada con la grilla. Por eso la `x` de la rana es continua (en px) y su fila es entera, y las bahías de meta aceptan un margen de tolerancia.
 - **Es el primer juego de la galería con vidas y un temporizador dibujado en el canvas.** Las vidas usan `onLives` (que ya existe y el HUD muestra). El temporizador es un indicador dentro del juego, igual que el timer de power-up de ROCAS: es una barra en la fila inferior del canvas, sin texto. El HUD de la plataforma no cambia.
 - **El juego es totalmente determinista.** No hay azar: las posiciones iniciales de los carriles, los ciclos de las tortugas que se sumergen y las velocidades son fijos. Dos partidas con las mismas teclas en los mismos momentos dan el mismo resultado. Eso hace justo el ranking y no hace falta un generador con semilla.
 
 Criterios elegidos por el diseñador (no hubo preguntas, según las reglas del jam):
 
-1. **Entrada nueva** `croac` en `games`. RANARIA queda intacta.
+1. **Entrada nueva** `croac` en `games`.
 2. **Todo se dibuja con canvas.** No hay assets binarios ni nada en `public/`.
 3. **Frogger clásico y sin agregados**: sin mosca bonus, sin rana dama, sin cocodrilos ni serpientes. Ver Descartadas.
 
@@ -41,8 +41,7 @@ Criterios elegidos por el diseñador (no hubo preguntas, según las reglas del j
 
 **Out of scope (para specs futuras):**
 
-- Cualquier cambio a RANARIA (`ranaria` sigue con arena falsa y `playable = false`) o a otro juego del catálogo.
-- Motores para los demás placeholders (Bloque Buster, Caída, Serpentina, Glotón, Invasores, Ranaria, Duelo Pixel).
+- Cualquier cambio a otro juego del catálogo.
 - Sonido, música y control de mute.
 - Sprites o imágenes: rana, autos, camiones, troncos, tortugas y nenúfares se dibujan con primitivas de canvas.
 - Agregados del Frogger de arcade: mosca bonus en las bahías, rana dama sobre los troncos, cocodrilos (en los troncos o en las bahías), serpiente en la franja media, nutrias en el río.
@@ -72,7 +71,7 @@ insert into public.games (id, title, short, long, cat, cover, color, playable, s
  'ARCADE', 'cover-croac', 'magenta', true, 12);
 ```
 
-Estado esperado antes de la migración: 11 juegos, con `rocas`, `tetris`, `arkanoid` y `snake` en `playable = true` y `sort_order` del 1 al 11 sin huecos. Después: 12 juegos, con `croac` también jugable. `sort_order = 12` se confirma contra la base antes de aplicar, porque la columna es única.
+Estado esperado antes de la migración (después de la SPEC 13): 4 juegos, todos con `playable = true`: `rocas` (6), `tetris` (9), `arkanoid` (10) y `snake` (11). Después: 5 juegos, con `croac` también jugable. `sort_order = 12` se confirma contra la base antes de aplicar, porque la columna es única.
 
 **Constantes del motor (`lib/games/croac/constants.ts`)**, definidas en esta spec:
 
@@ -251,12 +250,12 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
    2. Consultar `select id, sort_order from public.games order by 2`.
    3. Aplicar con `apply_migration` el insert del Data model (nombre `add_croac_game`).
    4. Leer la versión real asignada (`select version, name from supabase_migrations.schema_migrations order by version desc limit 1`) y guardar el mismo SQL en `supabase/migrations/<version>_add_croac_game.sql`.
-   5. Verificar con `execute_sql`: 12 filas en `games`, `croac` jugable y `ranaria` con `playable = false`.
+   5. Verificar con `execute_sql`: 5 filas en `games`, todas jugables, incluida `croac`.
 
-   Prueba manual: `/games` muestra 12 tarjetas y `/games/croac/play` muestra el juego.
+   Prueba manual: `/games` muestra 5 tarjetas y `/games/croac/play` muestra el juego.
 9. **Verificación de RLS por REST.** Con `curl` y la publishable key (`apikey` + `Authorization: Bearer`):
    - Un `POST /rest/v1/scores` válido para `croac` responde `201`.
-   - Se rechazan un `score` `0`, un `player_name` de 11 caracteres, un `game_id` inexistente y `game_id = 'ranaria'`.
+   - Se rechazan un `score` `0`, un `player_name` de 11 caracteres y un `game_id` inexistente.
    - Al terminar, borrar las filas de prueba con `execute_sql`.
 10. **Documentación y pase final.**
     - Agregar CROAC a `GAMES.md`, con los controles y las reglas tomados de `input.ts`, `constants.ts` y `engine.ts`.
@@ -270,13 +269,12 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 
 **Plataforma y datos**
 
-- [ ] `games` tiene 12 filas; `croac` tiene `title = 'CROAC'`, `cat = 'ARCADE'`, `color = 'magenta'`, `cover = 'cover-croac'`, `sort_order = 12` y `playable = true`.
-- [ ] `ranaria` y los demás placeholders (`bloque-buster`, `caida`, `serpentina`, `gloton`, `invasores`, `duelo-pixel`) conservan exactamente sus valores anteriores con `playable = false`; solo `rocas`, `tetris`, `arkanoid`, `snake` y `croac` tienen `playable = true`.
+- [ ] `games` tiene 5 filas; `croac` tiene `title = 'CROAC'`, `cat = 'ARCADE'`, `color = 'magenta'`, `cover = 'cover-croac'`, `sort_order = 12` y `playable = true`.
+- [ ] `rocas`, `tetris`, `arkanoid` y `snake` conservan exactamente sus valores anteriores; las 5 filas tienen `playable = true`.
 - [ ] `list_migrations` muestra `add_croac_game` y `supabase/migrations/` contiene su SQL con la misma versión.
-- [ ] `/games` muestra 12 tarjetas, con CROAC en último lugar y su cover distinto del de RANARIA; los filtros por categoría siguen funcionando.
+- [ ] `/games` muestra 5 tarjetas, con CROAC en último lugar; los filtros por categoría siguen funcionando.
 - [ ] `/games/croac` muestra el título y la descripción de la base, `—` como mejor marca y `0` como partidas cuando no hay puntajes.
 - [ ] `/games/croac/play` muestra un `<canvas>` de 800×600 dentro del marco CRT y no contiene los elementos `.enemy` ni `.player-ship` de la arena falsa.
-- [ ] `/games/ranaria/play` sigue mostrando la arena falsa y su modal dice "ESTE JUEGO AÚN NO TIENE RANKING." sin ofrecer guardar.
 
 **Juego**
 
@@ -312,7 +310,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - [ ] "GUARDAR PUNTUACIÓN" crea una fila en `scores` con `game_id = 'croac'`, el nombre en mayúsculas y el puntaje final, y el modal muestra "PUNTUACIÓN GUARDADA".
 - [ ] Tras guardar, `/games/croac` y la pestaña CROAC de `/hall-of-fame` muestran ese puntaje, y `best` y `plays` se actualizan.
 - [ ] ROCAS, TETRIS, ARKANOID y SNAKE se juegan igual que antes.
-- [ ] Con la publishable key, un `POST /rest/v1/scores` válido para `croac` responde `201`, y se rechazan `score` `0`, `player_name` de 11 caracteres, un `game_id` inexistente y `game_id = 'ranaria'`; las filas de prueba quedan borradas.
+- [ ] Con la publishable key, un `POST /rest/v1/scores` válido para `croac` responde `201`, y se rechazan `score` `0`, `player_name` de 11 caracteres y un `game_id` inexistente; las filas de prueba quedan borradas.
 - [ ] `rg -n 'from "(react|next)' lib/games/croac/` no devuelve resultados.
 - [ ] `git diff` no muestra cambios en `lib/supabase/`, `lib/session-context.tsx`, `components/`, `resources/` ni `package.json`, y `database.types.ts` no cambió.
 - [ ] `GAMES.md` lista CROAC con controles y reglas que coinciden con el motor.
@@ -325,7 +323,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 
 **Tomadas:**
 
-- **CROAC como entrada nueva (`croac`), no sobre RANARIA.** La galería suma juegos. A cambio, el catálogo muestra dos juegos de ranas (uno jugable y un placeholder), igual que pasó con Snake y SERPENTINA.
+- **CROAC como entrada nueva (`croac`).** La galería suma juegos, cada uno con su fila, slug y cover propios.
 - **Frogger clásico y fiel.** El ángulo del brief es acción/reflejos, y Frogger es el original del tema. Las reglas conocidas (carretera, franja media, río, 5 bahías, tiempo, 3 vidas) evitan explicaciones. A cambio, el diseño no es original: su valor está en la ejecución.
 - **Grilla 20×15 de 40 px.** Divide exactamente el canvas 800×600, como en Snake. Las 15 filas alcanzan para seto, meta, 5 carriles de río, franja media, 5 de carretera, salida y la barra de tiempo, sin bordes sobrantes.
 - **`x` continua y fila entera.** Es la única forma de que el río arrastre a la rana con suavidad. A cambio, la rana queda desalineada de la grilla después de pasar por el río, y eso se compensa con la tolerancia de ±24 px de las bahías.
@@ -353,7 +351,6 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 
 **Descartadas:**
 
-- **Activar `ranaria`:** es el atajo más barato, pero reemplaza una entrada existente y viola la regla de galería.
 - **Mosca bonus, rana dama, cocodrilos, serpiente en la franja media y nutrias:** son fieles al arcade, pero cada uno agrega estado, colisiones y reglas de puntaje. Duplican el esfuerzo de un primer Frogger. Quedan para una spec de "CROAC deluxe".
 - **Vida extra por puntaje:** cambia el ritmo de las partidas largas y abre la pregunta del tope de vidas. Se puede sumar después sin tocar la plataforma.
 - **Salto con auto-repeat al mantener la tecla:** hace que la rana "corra" sin control hacia los autos y va contra el ángulo de reflejos (una decisión por salto).
@@ -389,7 +386,6 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 | Las letras `W`, `A`, `S`, `D` no se pueden escribir en el modal de guardado | `preventDefault` solo mientras `!paused && state !== "gameover"`. Hay un criterio explícito. |
 | Una partida termina en 0 (la rana muere sin avanzar) y el modal falla | La plataforma ya no ofrece guardar con puntaje 0 (`CHECK` 1..99.999.999). Es un comportamiento esperado, no un error. |
 | El puntaje se calcula en el cliente y se puede falsificar | Mismo riesgo aceptado en la SPEC 06: la base solo valida la forma. El determinismo, al menos, permite reproducir partidas a mano si hiciera falta. |
-| Dos juegos de ranas en el catálogo (CROAC y RANARIA) confunden a quien juega | Aceptado por la regla de galería. El cover y la descripción de CROAC son distintos, y RANARIA sigue marcada como no jugable. |
 | La versión de la migración se ordena antes que las existentes si se toma de la hora local | La versión se lee de `supabase_migrations.schema_migrations` después de aplicar. |
 | Canvas borroso en pantallas grandes o retina | Aceptado como límite conocido: HiDPI queda fuera de alcance. |
 
@@ -397,8 +393,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 
 ## What is **not** in this spec
 
-- Cambios a RANARIA ni a ningún otro juego del catálogo.
-- Motores de los demás placeholders.
+- Cambios a ningún otro juego del catálogo.
 - Sonido, música o control de mute.
 - Sprites o assets binarios de cualquier tipo.
 - Mosca bonus, rana dama, cocodrilos, serpientes, nutrias, vida extra y diseños de carriles por nivel.
