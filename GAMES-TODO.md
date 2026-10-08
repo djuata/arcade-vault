@@ -68,7 +68,7 @@
 
 ## Aceptados (próximos a implementar)
 
-- [ ] **CROAC** (`croac`) — ARCADE / magenta · ganó el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [10](specs/10-croac-game.md) (Draft)
+_(ninguno por ahora)_
 
 ## Implementados
 
@@ -76,6 +76,7 @@
 - [x] **TETRIS** (`tetris`) — spec [07](specs/07-tetris-game.md)
 - [x] **ARKANOID** (`arkanoid`) — spec [08](specs/08-arkanoid-game.md)
 - [x] **SNAKE** (`snake`) — spec [09](specs/09-snake-game.md)
+- [x] **CROAC** (`croac`) — ganó el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [10](specs/10-croac-game.md)
 
 ## Descartados
 
