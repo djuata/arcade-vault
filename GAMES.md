@@ -2,7 +2,7 @@
 
 Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/registry.ts` (`GAME_ENGINES`) y `playable = true` en la tabla `games` de Supabase, por lo que guardan puntajes en el ranking.
 
-> Actualizado: 2026-10-08 · 4 juegos jugables de 4 en el catálogo.
+> Actualizado: 2026-10-08 · 5 juegos jugables de 5 en el catálogo.
 
 ## Resumen
 
@@ -12,6 +12,7 @@ Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/r
 | 2 | TETRIS | `tetris` | PUZZLE | cyan | — | [07](specs/07-tetris-game.md) | `resources/started-games/03-tetris` |
 | 3 | ARKANOID | `arkanoid` | ARCADE | yellow | 3 | [08](specs/08-arkanoid-game.md) | `resources/started-games/04-arkanoid` |
 | 4 | SNAKE | `snake` | ARCADE | green | — | [09](specs/09-snake-game.md) | Implementación propia (sprites de frutas) |
+| 5 | CROAC | `croac` | ARCADE | magenta | 3 | [10](specs/10-croac-game.md) | Implementación propia (game jam, todo en canvas) |
 
 Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado a 4:3. La plataforma (`GamePlayer`) pone el HUD, la pausa con `P`, el modal "FIN DEL JUEGO" y el guardado del puntaje.
 
@@ -111,6 +112,31 @@ En dispositivos táctiles (`pointer: coarse`) aparece un panel de controles dent
 - 10 puntos por fruta; cada fruta alarga la serpiente.
 - Sube de nivel cada 5 frutas; el paso acelera de 150 ms a un mínimo de 70 ms (−10 ms por nivel).
 - Sin vidas: chocar con una pared o con uno mismo termina la partida.
+
+---
+
+## CROAC
+
+*Cruza la carretera y el río sin convertirte en papilla.*
+
+- **Ruta:** `/games/croac` · **Motor:** `lib/games/croac/` (`createCroacGame`)
+- **Cover:** `.cover-croac` · **Migración:** `20261008203423_add_croac_game.sql`
+- **Assets:** ninguno (todo se dibuja en el canvas)
+
+| Control | Acción |
+| ------- | ------ |
+| `↑` `↓` `←` `→` / `W` `A` `S` `D` | Saltar una celda (40 px); una pulsación = un salto, hasta 2 en cola |
+
+**Táctil** (`lib/games/croac/touch.ts`): D-pad `↑` `↓` `←` `→` sin diagonales ni autorrepetición (cada toque es un salto) · sin botones de acción.
+
+**Reglas**
+- Grilla de 20×15 celdas: seto con 5 bahías, río (filas 2–6), franja segura, carretera (filas 8–12), vereda de salida y barra de tiempo.
+- 3 vidas; 30 s por rana (la barra pasa a amarillo bajo 10 s y a magenta bajo 5 s). Al morir, 1 s de animación y reaparece en la salida.
+- Muere al tocar un vehículo, caer al agua, salir del canvas arrastrada por el río, quedarse sin tiempo o saltar al seto o a una bahía ocupada.
+- En el río la rana viaja sobre troncos y tortugas; las tortugas que se sumergen (una por fila, filas 3 y 6) avisan hundiéndose 0,6 s y quedan 1,2 s bajo el agua.
+- Puntos: 10 por cada fila nueva, 50 por bahía + 10 por cada medio segundo restante (máx. 600), 1000 al llenar las 5 bahías.
+- Llenar las 5 bahías sube de nivel: las bahías se vacían y el tráfico acelera +12 % por nivel hasta ×1,96 en el nivel 9.
+- Determinista: no hay azar en el tráfico.
 
 ---
 

@@ -1,6 +1,6 @@
 # SPEC 10 — CROAC
 
-> **Status:** Draft
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard), SPEC 12 (touch-controls), SPEC 13 (remove-placeholder-games)
 > **Date:** 2026-10-07
 > **Objective:** Agregar CROAC como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): un Frogger clásico y fiel con carretera, río, cinco nenúfares, temporizador por rana y tres vidas, con su ranking en Supabase.
@@ -350,6 +350,7 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - **Versión de la migración tomada de Supabase** y **registro antes que migración**, por las mismas razones de las SPEC 07 a 09.
 - **Cover en CSS puro** con los tokens existentes.
 - **`sort_order = 12`**, el que sugiere el brief y el siguiente libre después de `snake = 11`.
+- **Layout táctil como SNAKE** (D-pad de 4 direcciones, sin diagonales ni botones). Una diagonal dispararía dos saltos a la vez, y `Space` no tiene acción. Cada toque es un salto: el motor ignora `repeat`, así que no se marca `repeat`.
 
 **Descartadas:**
 
@@ -361,7 +362,6 @@ Antes de escribir código, consultar la guía de Next.js 16 en `node_modules/nex
 - **Diseños de carriles distintos por nivel:** multiplica el balanceo manual. Por ahora, la velocidad alcanza como progresión.
 - **Pantalla de "nivel completado" o de victoria:** necesitaría pausar el juego y dibujar texto, y la plataforma ya muestra el nivel. Un modal de victoria sería un cambio de `GameCallbacks`.
 - **Mostrar el tiempo en el HUD de la plataforma:** exigiría un callback nuevo (`onTime`) y cambiar `GamePlayer`. Según las reglas del jam, se simplifica con una barra dentro del canvas.
-- **Sí: layout táctil como SNAKE** (D-pad de 4 direcciones, sin diagonales ni botones). Una diagonal dispararía dos saltos a la vez, y `Space` no tiene acción. Cada toque es un salto: el motor ignora `repeat`, así que no se marca `repeat`.
 - **Swipe sobre el canvas:** obligaría a tocar el motor o la plataforma; el panel de la SPEC 12 ya alcanza.
 - **Mouse para saltar (clic en la dirección):** no aporta a un juego de reflejos con cuatro direcciones y duplica el input.
 - **Sprites PNG de rana y vehículos:** habría que revisar licencias y agregar carga asíncrona y respaldo. Las primitivas de canvas alcanzan para la estética neón.
