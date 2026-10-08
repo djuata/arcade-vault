@@ -1,6 +1,6 @@
 # SPEC 10 — CROAC
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (asteroids-game), SPEC 06 (games-table-and-leaderboard), SPEC 12 (touch-controls), SPEC 13 (remove-placeholder-games)
 > **Date:** 2026-10-07
 > **Objective:** Agregar CROAC como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): un Frogger clásico y fiel con carretera, río, cinco nenúfares, temporizador por rana y tres vidas, con su ranking en Supabase.
