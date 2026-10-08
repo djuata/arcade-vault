@@ -2,7 +2,7 @@
 
 Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/registry.ts` (`GAME_ENGINES`) y `playable = true` en la tabla `games` de Supabase, por lo que guardan puntajes en el ranking.
 
-> Actualizado: 2026-10-06 · 4 juegos jugables de 11 en el catálogo.
+> Actualizado: 2026-10-08 · 4 juegos jugables de 11 en el catálogo.
 
 ## Resumen
 
@@ -14,6 +14,8 @@ Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/r
 | 4 | SNAKE | `snake` | ARCADE | green | — | [09](specs/09-snake-game.md) | Implementación propia (sprites de frutas) |
 
 Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado a 4:3. La plataforma (`GamePlayer`) pone el HUD, la pausa con `P`, el modal "FIN DEL JUEGO" y el guardado del puntaje.
+
+En dispositivos táctiles (`pointer: coarse`) aparece un panel de controles dentro del marco CRT, debajo del canvas ([spec 12](specs/12-touch-controls.md)): D-pad a la izquierda y botones de acción a la derecha. Despacha eventos de teclado sintéticos en `window`, así que los motores no cambian. El layout de cada juego vive en `lib/games/<slug>/touch.ts` y se registra en `GAME_TOUCH_CONTROLS`; un juego con motor sin layout muestra "REQUIERE TECLADO".
 
 ---
 
@@ -29,6 +31,8 @@ Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado
 | `←` / `→` | Rotar la nave |
 | `↑` | Propulsar |
 | `Espacio` | Disparar |
+
+**Táctil** (`lib/games/asteroids/touch.ts`): D-pad `←` `→` `↑` con diagonales (arriba-izquierda/derecha rota y propulsa a la vez) · botón `DISPARO` (`Espacio`).
 
 **Reglas**
 - 3 vidas; reaparición tras 2 s.
@@ -53,6 +57,8 @@ Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado
 | `↑` / `X` | Rotar (con wall kicks) |
 | `Espacio` | Caída instantánea |
 
+**Táctil** (`lib/games/tetris/touch.ts`): D-pad `←` `→` `↓` con autorrepetición al mantener · botones `ROTAR` (`↑`, sin autorrepetición) y `CAÍDA` (`Espacio`).
+
 **Reglas**
 - Tablero de 10×20, con vista previa de la siguiente pieza y pieza fantasma.
 - 7 piezas clásicas más la pieza "N" (tuerca) del juego original.
@@ -75,6 +81,8 @@ Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado
 | `←` / `→` | Mover la paleta |
 | Mouse | La paleta sigue al cursor |
 
+**Táctil** (`lib/games/arkanoid/touch.ts`): D-pad `←` `→` (la paleta se mueve mientras se mantiene) · sin botones de acción.
+
 **Reglas**
 - 3 vidas; se pierde una cuando la pelota cae.
 - 5 niveles, cada uno con su patrón de bloques y una pelota más rápida.
@@ -96,6 +104,8 @@ Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado
 | ------- | ------ |
 | `↑` `↓` `←` `→` / `W` `A` `S` `D` | Cambiar de dirección (hasta 2 giros en cola) |
 
+**Táctil** (`lib/games/snake/touch.ts`): D-pad `↑` `↓` `←` `→` sin diagonales (deslizar el pulgar cambia la dirección) · sin botones de acción.
+
 **Reglas**
 - Tablero de 20×15 celdas; la serpiente empieza con largo 3.
 - 10 puntos por fruta; cada fruta alarga la serpiente.
@@ -110,4 +120,4 @@ Muestran la arena simulada y **no** aceptan puntajes (RLS): `bloque-buster`, `ca
 
 ## Cómo agregar un juego
 
-Usá el skill `arcade-vault-game`: primero escribe la spec en `specs/NN-<slug>-game.md` (Draft) y espera aprobación; después crea el motor, lo registra en `GAME_ENGINES`, aplica la migración con `playable = true` y agrega la clase `.cover-*`. Al terminar, sumá el juego a este archivo.
+Usá el skill `arcade-vault-game`: primero escribe la spec en `specs/NN-<slug>-game.md` (Draft) y espera aprobación; después crea el motor, lo registra en `GAME_ENGINES`, aplica la migración con `playable = true`, agrega la clase `.cover-*` y su layout táctil (`lib/games/<slug>/touch.ts` en `GAME_TOUCH_CONTROLS`). Al terminar, sumá el juego a este archivo.

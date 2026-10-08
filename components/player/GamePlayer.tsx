@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { toPlayerName, type Game } from "@/lib/games";
-import { GAME_ENGINES, GAME_SKINS } from "@/lib/games/registry";
+import { GAME_ENGINES, GAME_SKINS, GAME_TOUCH_CONTROLS } from "@/lib/games/registry";
 import { DEFAULT_SKIN, readStoredSkin, storeSkin } from "@/lib/games/skins";
 import type { GameCallbacks } from "@/lib/games/types";
 import { useSession } from "@/lib/session-context";
 import { createClient } from "@/lib/supabase/client";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { SkinSelector } from "./SkinSelector";
+import { TouchControls } from "./TouchControls";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -76,6 +77,7 @@ export function GamePlayer({ game }: { game: Game }) {
   const skins = GAME_SKINS[game.id] ?? NO_SKINS;
   const [skin, changeSkin] = useGameSkin(game.id, skins);
   const showSkins = hasEngine && skins.length > 1;
+  const touchLayout = GAME_TOUCH_CONTROLS[game.id];
 
   const [score, setScore] = useState(0);
   // Mock games show 3 lives; engines show them only if they emit onLives.
@@ -194,6 +196,7 @@ export function GamePlayer({ game }: { game: Game }) {
               callbacks={callbacks}
               skin={skin}
               title={game.title}
+              requiresKeyboard={touchLayout === undefined}
             />
           ) : (
             <div className="game-arena">
@@ -217,6 +220,7 @@ export function GamePlayer({ game }: { game: Game }) {
             </div>
           )}
         </div>
+        {hasEngine && touchLayout && <TouchControls layout={touchLayout} />}
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           <span>

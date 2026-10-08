@@ -24,7 +24,8 @@ This skill is spec-first: it writes the spec, **pauses for the user's approval**
 | Piece | Where | Needed |
 | ----- | ----- | ------ |
 | Engine | `lib/games/<slug>/` (pure TS) | Always |
-| Registry | `lib/games/registry.ts` (one line) | Always |
+| Registry | `lib/games/registry.ts` (one line in `GAME_ENGINES`) | Always |
+| Touch layout | `lib/games/<slug>/touch.ts` + one line in `GAME_TOUCH_CONTROLS` | Always |
 | `playable = true` | New migration in `supabase/migrations/` + `apply_migration` | Always |
 | `games` row | Same migration, `insert` | Only if the slug is NOT in the catalog |
 | Cover CSS | `.cover-*` in `app/globals.css` | Only for a brand-new catalog game |
@@ -71,6 +72,7 @@ Do both in the same change. Never one without the other.
 - `preventDefault` on game keys **only while** `!paused && state !== "gameover"` (`shouldCapture`). Otherwise the modal's name input can't take Space/arrows.
 - Also cancel `Space` on `keyup` (Firefox activates a focused button on keyup).
 - "Just pressed" semantics consume on read and ignore auto-repeat.
+- Read **only `e.code`** (plus `e.repeat` if needed); never `e.key` or `isTrusted`. The touch panel (`components/player/TouchControls.tsx`) dispatches synthetic `KeyboardEvent`s on `window` with just `code`/`repeat`, so an engine that reads anything else is unplayable on mobile.
 
 ### 6. The platform owns the chrome
 
@@ -111,6 +113,7 @@ Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.s
 
 1. **Engine**: copy [assets/engine.ts.tpl](assets/engine.ts.tpl) and [assets/input.ts.tpl](assets/input.ts.tpl) to `lib/games/<slug>/{engine,input}.ts`; add `constants.ts`, `entities.ts`, `utils.ts` as needed. Factory name: `create<Name>Game`.
 2. **Register**: add `<slug>: create<Name>Game` to `GAME_ENGINES`.
+   - **Touch layout**: create `lib/games/<slug>/touch.ts` exporting `<NAME>_TOUCH_CONTROLS: TouchControlsLayout` (types in `lib/games/touch-controls.ts`; no React/`next`) and register it in `GAME_TOUCH_CONTROLS`. Map only the directions the engine reads (unmapped ones aren't drawn), `repeat: true` only where the engine expects keyboard auto-repeat, `diagonals` only when two directions at once make sense, 0–4 action buttons with Spanish labels. See specs/12-touch-controls.md for the existing layouts.
 3. **Migration**: from [assets/migration.sql.tpl](assets/migration.sql.tpl); file `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql`, apply with `apply_migration` (same SQL). Inspect existing tables first.
 4. **Brand-new game only**: `cover` class in `app/globals.css`; `cat` ∈ ARCADE|PUZZLE|SHOOTER|VERSUS, `color` ∈ cyan|magenta|yellow|green (CHECK constraints), unique `sort_order`.
 5. **Verify RLS** with the publishable key (`get_project_url`, `get_publishable_keys`):
@@ -131,7 +134,8 @@ Create the branch `spec-NN-<slug>-game` (respect `AutoCreateBranch` in `specs/.s
 - [ ] A non-playable game still shows "ESTE JUEGO AÚN NO TIENE RANKING." and writes nothing.
 - [ ] `git diff` shows no changes in `lib/session-context.tsx`, `components/nav/`, `resources/`.
 - [ ] No new dependencies; no console errors or React warnings.
-- [ ] `GAMES.md` lists the game with controls and rules matching the engine.
+- [ ] `GAMES.md` lists the game with controls, its **Táctil** line and rules matching the engine.
+- [ ] On mobile emulation (`pointer: coarse`) the touch panel shows, no "REQUIERE TECLADO", and every control works.
 
 ## Commands
 

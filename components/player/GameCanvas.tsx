@@ -17,10 +17,19 @@ interface GameCanvasProps {
   /** Changing it swaps the palette live; it never recreates the engine. */
   skin: string;
   title: string;
+  /** Shows the "REQUIERE TECLADO" notice on touch devices (no touch layout). */
+  requiresKeyboard: boolean;
   ref?: Ref<GameCanvasHandle>;
 }
 
-export function GameCanvas({ createEngine, callbacks, skin, title, ref }: GameCanvasProps) {
+export function GameCanvas({
+  createEngine,
+  callbacks,
+  skin,
+  title,
+  requiresKeyboard,
+  ref,
+}: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const skinRef = useRef(skin);
@@ -71,9 +80,11 @@ export function GameCanvas({ createEngine, callbacks, skin, title, ref }: GameCa
         tabIndex={-1}
         aria-label={`Juego ${title}`}
       />
-      <div className="touch-notice" role="note">
-        REQUIERE TECLADO
-      </div>
+      {requiresKeyboard && (
+        <div className="touch-notice" role="note">
+          REQUIERE TECLADO
+        </div>
+      )}
     </>
   );
 }
