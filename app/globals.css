@@ -519,6 +519,33 @@ a { color: inherit; text-decoration: none; }
   text-shadow: 0 0 8px var(--yellow);
 }
 
+/* Croac: river with logs and lily pads on top, a violet median with the frog, road with a car below. */
+.cover-croac {
+  background:
+    linear-gradient(#1a0b2e, #1a0b2e) 0 46% / 100% 14% no-repeat,
+    linear-gradient(180deg, #030c26 0 46%, transparent 46% 60%, #121218 60% 100%);
+}
+.cover-croac::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, #1f9d55 0 6px, transparent 7px) 5% 6% / 20% 14% repeat-x,
+    linear-gradient(#7a4a22, #7a4a22) left 8% top 20% / 34% 9% no-repeat,
+    linear-gradient(#7a4a22, #7a4a22) left 70% top 32% / 42% 9% no-repeat,
+    linear-gradient(rgba(0,245,255,0.18), rgba(0,245,255,0.18)) left 50% top 28% / 12% 2% no-repeat;
+}
+.cover-croac::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(#39ff6a, #39ff6a) left 50% top 48% / 9% 10% no-repeat,
+    repeating-linear-gradient(90deg, #f5ff00 0 14px, transparent 14px 28px) left 0 top 79% / 100% 2% no-repeat,
+    linear-gradient(#ff006e, #ff006e) left 22% top 66% / 18% 9% no-repeat;
+  filter: drop-shadow(0 0 6px rgba(255,0,110,0.6));
+}
+
 /* ===== detail screen ===== */
 .av-detail {
   display: grid;

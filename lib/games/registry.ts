@@ -2,6 +2,8 @@ import { createAsteroidsGame } from "./asteroids/engine";
 import { ASTEROIDS_TOUCH_CONTROLS } from "./asteroids/touch";
 import { createArkanoidGame } from "./arkanoid/engine";
 import { ARKANOID_TOUCH_CONTROLS } from "./arkanoid/touch";
+import { createCroacGame } from "./croac/engine";
+import { CROAC_TOUCH_CONTROLS } from "./croac/touch";
 import { createSnakeGame } from "./snake/engine";
 import { SNAKE_SKINS } from "./snake/skins";
 import { SNAKE_TOUCH_CONTROLS } from "./snake/touch";
@@ -16,6 +18,7 @@ export const GAME_ENGINES: Readonly<Record<string, GameEngineFactory | undefined
   tetris: createTetrisGame,
   arkanoid: createArkanoidGame,
   snake: createSnakeGame,
+  croac: createCroacGame,
 };
 
 // Slug → available skin ids, `classic` first. Games without an entry have no skins.
@@ -29,4 +32,5 @@ export const GAME_TOUCH_CONTROLS: Readonly<Record<string, TouchControlsLayout | 
   tetris: TETRIS_TOUCH_CONTROLS,
   arkanoid: ARKANOID_TOUCH_CONTROLS,
   snake: SNAKE_TOUCH_CONTROLS,
+  croac: CROAC_TOUCH_CONTROLS,
 };
