@@ -1,6 +1,6 @@
 # SPEC 15 — FROGGER
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 06 (games-table-and-leaderboard), SPEC 10 (croac-game), SPEC 12 (touch-controls), SPEC 13 (remove-placeholder-games)
 > **Date:** 2026-10-09
 > **Objective:** Agregar FROGGER como juego nuevo de la galería (entrada propia en `games`, motor TypeScript escrito desde cero): el Frogger de arcade **completo**, con todo lo que CROAC dejó afuera (mosca bonus, cocodrilos en el río y en las bahías, rana dama, serpiente en la franja media y vida extra), con su ranking en Supabase.
