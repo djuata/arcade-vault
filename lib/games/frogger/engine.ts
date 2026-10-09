@@ -1,3 +1,4 @@
+import { createGlowCache } from "../glow-cache";
 import { resolveSkin } from "../skins";
 import type { GameEngineFactory } from "../types";
 import {
@@ -79,6 +80,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks, options)
   let state: GameState = "playing";
 
   let palette: FroggerPalette = resolveSkin(FROGGER_SKINS, options?.skin);
+  const glow = createGlowCache();
   let paused = false;
   let destroyed = false;
   let rafId: number | null = null;
@@ -260,7 +262,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks, options)
   }
 
   function render() {
-    drawFrame(ctx, { lanes, bays, frog, hazards, deathCause, deathTimerMs, timeLeft, animClock }, palette);
+    drawFrame(ctx, { lanes, bays, frog, hazards, deathCause, deathTimerMs, timeLeft, animClock }, palette, glow);
   }
 
   // ── Loop & lifecycle ────────────────────────────────────────────────────────
@@ -310,6 +312,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks, options)
     setSkin(id) {
       if (destroyed) return;
       palette = resolveSkin(FROGGER_SKINS, id);
+      glow.clear();
       if (rafId === null) render(); // paused: show the new palette behind the overlay now
     },
     destroy() {
@@ -317,6 +320,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks, options)
       destroyed = true;
       stopLoop();
       input.detach();
+      glow.clear();
     },
   };
 };

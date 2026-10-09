@@ -36,7 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <SessionProvider>
-          <div className="av-bg" aria-hidden="true" />
+          <div className="av-bg" aria-hidden="true">
+            <div className="av-bg-grid" />
+          </div>
           <div className="av-noise" aria-hidden="true" />
           <Nav />
           <main className="av-main">{children}</main>

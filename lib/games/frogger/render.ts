@@ -1,3 +1,4 @@
+import type { GlowCache } from "../glow-cache";
 import {
   BAY_CENTERS,
   BAY_WIDTH,
@@ -7,6 +8,7 @@ import {
   DEATH_MS,
   FROG_SIZE,
   GOAL_ROW,
+  H,
   HEDGE_ROW,
   HOP_ANIM_MS,
   MEDIAN_ROW,
@@ -98,6 +100,21 @@ function drawBackground(ctx: CanvasRenderingContext2D, palette: FroggerPalette) 
   ctx.fillRect(0, rowTop(TIMER_ROW), W, CELL);
 }
 
+// The background never changes within a palette: paint it once and blit it every frame.
+let backgroundCache: { palette: FroggerPalette; canvas: HTMLCanvasElement } | null = null;
+
+function cachedBackground(palette: FroggerPalette): HTMLCanvasElement {
+  if (backgroundCache?.palette === palette) return backgroundCache.canvas;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Frogger: 2D canvas context is not available");
+  drawBackground(ctx, palette);
+  backgroundCache = { palette, canvas };
+  return canvas;
+}
+
 // ── Frog ────────────────────────────────────────────────────────────────────
 
 function drawEyes(
@@ -141,11 +158,8 @@ function drawFrogAt(
   drawEyes(ctx, cx, cy, FROG_SIZE / 2, facing, palette);
 }
 
-function drawLadyAt(ctx: CanvasRenderingContext2D, palette: FroggerPalette, cx: number, cy: number) {
-  withGlow(ctx, palette.lady, palette.glow.lady, () => {
-    ctx.fillStyle = palette.lady;
-    ctx.fillRect(cx - 8, cy - 8, 16, 16);
-  });
+function drawLadyAt(ctx: CanvasRenderingContext2D, palette: FroggerPalette, glow: GlowCache, cx: number, cy: number) {
+  glow.rect(ctx, cx - 8, cy - 8, 16, 16, palette.lady, palette.glow.lady);
   ctx.fillStyle = palette.frogEye;
   ctx.fillRect(cx - 5, cy - 5, 3, 3);
   ctx.fillRect(cx + 2, cy - 5, 3, 3);
@@ -179,12 +193,12 @@ function splashes(cause: DeathCause, row: number): boolean {
   return true;
 }
 
-function drawFrog(ctx: CanvasRenderingContext2D, frame: Frame, palette: FroggerPalette) {
+function drawFrog(ctx: CanvasRenderingContext2D, frame: Frame, palette: FroggerPalette, glow: GlowCache) {
   const { frog, deathCause, deathTimerMs, hazards } = frame;
   const cy = rowCenter(frog.row);
   if (deathCause === null) {
     drawFrogAt(ctx, palette, frog.x, cy, frog.facing, Math.max(0, frog.hopAnimMs) / HOP_ANIM_MS);
-    if (hazards.ladyEscorted) drawLadyAt(ctx, palette, frog.x, cy);
+    if (hazards.ladyEscorted) drawLadyAt(ctx, palette, glow, frog.x, cy);
     return;
   }
   const progress = Math.min(1, Math.max(0, 1 - deathTimerMs / DEATH_MS));
@@ -329,16 +343,20 @@ function drawTurtles(ctx: CanvasRenderingContext2D, palette: FroggerPalette, obj
   }
 }
 
-function drawVehicle(ctx: CanvasRenderingContext2D, palette: FroggerPalette, lane: Lane, obj: LaneObject, y: number) {
+function drawVehicle(
+  ctx: CanvasRenderingContext2D,
+  palette: FroggerPalette,
+  glow: GlowCache,
+  lane: Lane,
+  obj: LaneObject,
+  y: number,
+) {
   const { width, dir, sprite } = lane.def;
   if (!isVehicleSprite(sprite)) return;
   const color = palette.vehicles[sprite];
   const body = sprite === "truck" ? 26 : 24;
   const top = y + (CELL - body) / 2;
-  withGlow(ctx, color, palette.glow.vehicle, () => {
-    ctx.fillStyle = color;
-    ctx.fillRect(obj.x, top, width, body);
-  });
+  glow.rect(ctx, obj.x, top, width, body, color, palette.glow.vehicle);
 
   // Cab / cockpit darker block toward the front.
   const front = dir > 0 ? obj.x + width : obj.x;
@@ -352,21 +370,21 @@ function drawVehicle(ctx: CanvasRenderingContext2D, palette: FroggerPalette, lan
   ctx.fillRect(lx, top + body - 7, 3, 4);
 }
 
-function drawLanes(ctx: CanvasRenderingContext2D, palette: FroggerPalette, lanes: readonly Lane[], animClock: number) {
-  for (const lane of lanes) {
+function drawLanes(ctx: CanvasRenderingContext2D, palette: FroggerPalette, glow: GlowCache, frame: Frame) {
+  for (const lane of frame.lanes) {
     const y = rowTop(lane.def.row);
     for (const obj of lane.objects) {
-      if (obj.croc) drawRiverCroc(ctx, palette, lane, obj, y, animClock);
+      if (obj.croc) drawRiverCroc(ctx, palette, lane, obj, y, frame.animClock);
       else if (lane.def.sprite === "log") drawLog(ctx, palette, obj.x, y, lane.def.width);
       else if (lane.def.sprite === "turtles") drawTurtles(ctx, palette, obj, y, lane.def.width);
-      else drawVehicle(ctx, palette, lane, obj, y);
+      else drawVehicle(ctx, palette, glow, lane, obj, y);
     }
   }
 }
 
-function drawLadyOnLog(ctx: CanvasRenderingContext2D, frame: Frame, palette: FroggerPalette) {
+function drawLadyOnLog(ctx: CanvasRenderingContext2D, frame: Frame, palette: FroggerPalette, glow: GlowCache) {
   const lady = ladyPosition(frame.hazards, frame.lanes);
-  if (lady) drawLadyAt(ctx, palette, lady.x, rowCenter(lady.row));
+  if (lady) drawLadyAt(ctx, palette, glow, lady.x, rowCenter(lady.row));
 }
 
 // ── Snake ───────────────────────────────────────────────────────────────────
@@ -405,12 +423,17 @@ function drawTimer(ctx: CanvasRenderingContext2D, palette: FroggerPalette, timeL
   });
 }
 
-export function drawFrame(ctx: CanvasRenderingContext2D, frame: Frame, palette: FroggerPalette): void {
-  drawBackground(ctx, palette);
+export function drawFrame(
+  ctx: CanvasRenderingContext2D,
+  frame: Frame,
+  palette: FroggerPalette,
+  glow: GlowCache,
+): void {
+  ctx.drawImage(cachedBackground(palette), 0, 0);
   drawBays(ctx, frame, palette);
-  drawLanes(ctx, palette, frame.lanes, frame.animClock);
-  drawLadyOnLog(ctx, frame, palette);
+  drawLanes(ctx, palette, glow, frame);
+  drawLadyOnLog(ctx, frame, palette, glow);
   drawSnake(ctx, palette, frame.hazards.snake);
-  drawFrog(ctx, frame, palette);
+  drawFrog(ctx, frame, palette, glow);
   drawTimer(ctx, palette, frame.timeLeft);
 }
