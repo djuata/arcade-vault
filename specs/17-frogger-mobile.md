@@ -1,6 +1,6 @@
 # SPEC 17 — Mobile de `/games/frogger` y `/games/frogger/play`
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 12 (touch-controls), SPEC 14 (site-mobile-first), SPEC 15 (frogger-game), SPEC 16 (frogger-skins)
 > **Date:** 2026-10-09
 > **Objective:** Que la página de detalle y el player de FROGGER se vean y se usen bien en celular (375×667, 390×844 y 667×375 apaisado), tablet (768×1024) y desktop (1280×800). En la práctica, eso significa que en desktop y laptop se vea el canvas **entero** (incluidas la fila de salida de la rana y la barra de tiempo) sin scrollear, y que la portada `.cover-frogger` escale con su caja.
