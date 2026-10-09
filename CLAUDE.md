@@ -83,6 +83,7 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 | ----- | --- |
 | `/spec` | Guided spec designer; writes `specs/NN-*.md` as Draft. User-invoked only (from `Klerith/fernando-skills`, pinned in `skills-lock.json`). |
 | `/spec-impl <NN-spec>` | Implements an **Approved** spec: creates the branch and goes step by step pausing for diffs. User-invoked only. |
+| `/spec-impl-game <NN-slug-game>` | `/spec-impl` for **game specs** (`specs/NN-<slug>-game.md`): reads and follows `spec-impl`'s phases as-is (not a copy), then automatically runs `skin-designer` and **then** `mobile-porter` (`/games/<slug>` + `/games/<slug>/play`) — sequentially, since both take "highest spec + 1". Both only write Draft specs (Phase A). User-invoked only. |
 | `arcade-vault-game` | Create or port a game (engine + registry + migration + cover CSS + RLS check). **Spec-first**: writes the Draft spec, then STOPS for approval before touching `lib/`, `app/` or `supabase/`. Includes templates in `assets/` (`engine.ts.tpl`, `input.ts.tpl`, `migration.sql.tpl`). |
 | `/frontend-design` | Use it always when designing UI. |
 
