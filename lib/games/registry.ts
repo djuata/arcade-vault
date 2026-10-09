@@ -4,6 +4,9 @@ import { createArkanoidGame } from "./arkanoid/engine";
 import { ARKANOID_TOUCH_CONTROLS } from "./arkanoid/touch";
 import { createCroacGame } from "./croac/engine";
 import { CROAC_TOUCH_CONTROLS } from "./croac/touch";
+import { createFroggerGame } from "./frogger/engine";
+import { FROGGER_SKINS } from "./frogger/skins";
+import { FROGGER_TOUCH_CONTROLS } from "./frogger/touch";
 import { createSnakeGame } from "./snake/engine";
 import { SNAKE_SKINS } from "./snake/skins";
 import { SNAKE_TOUCH_CONTROLS } from "./snake/touch";
@@ -19,11 +22,13 @@ export const GAME_ENGINES: Readonly<Record<string, GameEngineFactory | undefined
   arkanoid: createArkanoidGame,
   snake: createSnakeGame,
   croac: createCroacGame,
+  frogger: createFroggerGame,
 };
 
 // Slug → available skin ids, `classic` first. Games without an entry have no skins.
 export const GAME_SKINS: Readonly<Record<string, readonly string[] | undefined>> = {
   snake: Object.keys(SNAKE_SKINS),
+  frogger: Object.keys(FROGGER_SKINS),
 };
 
 // Slug → touch panel layout. Games with an engine but no entry show "REQUIERE TECLADO".
@@ -33,4 +38,5 @@ export const GAME_TOUCH_CONTROLS: Readonly<Record<string, TouchControlsLayout | 
   arkanoid: ARKANOID_TOUCH_CONTROLS,
   snake: SNAKE_TOUCH_CONTROLS,
   croac: CROAC_TOUCH_CONTROLS,
+  frogger: FROGGER_TOUCH_CONTROLS,
 };

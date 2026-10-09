@@ -2,7 +2,7 @@
 
 Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/registry.ts` (`GAME_ENGINES`) y `playable = true` en la tabla `games` de Supabase, por lo que guardan puntajes en el ranking.
 
-> Actualizado: 2026-10-08 · 5 juegos jugables de 5 en el catálogo.
+> Actualizado: 2026-10-09 · 6 juegos jugables de 6 en el catálogo.
 
 ## Resumen
 
@@ -13,6 +13,7 @@ Juegos **jugables** de la galería: tienen motor real registrado en `lib/games/r
 | 3 | ARKANOID | `arkanoid` | ARCADE | yellow | 3 | [08](specs/08-arkanoid-game.md) | `resources/started-games/04-arkanoid` |
 | 4 | SNAKE | `snake` | ARCADE | green | — | [09](specs/09-snake-game.md) | Implementación propia (sprites de frutas) |
 | 5 | CROAC | `croac` | ARCADE | magenta | 3 | [10](specs/10-croac-game.md) | Implementación propia (game jam, todo en canvas) |
+| 6 | FROGGER | `frogger` | ARCADE | green | 3 (+1) | [15](specs/15-frogger-game.md) | Implementación propia (arcade completo, todo en canvas) |
 
 Todos se juegan en `/games/<slug>/play`, con lienzo interno de 800×600 escalado a 4:3. La plataforma (`GamePlayer`) pone el HUD, la pausa con `P`, el modal "FIN DEL JUEGO" y el guardado del puntaje.
 
@@ -137,6 +138,36 @@ En dispositivos táctiles (`pointer: coarse`) aparece un panel de controles dent
 - Puntos: 10 por cada fila nueva, 50 por bahía + 10 por cada medio segundo restante (máx. 600), 1000 al llenar las 5 bahías.
 - Llenar las 5 bahías sube de nivel: las bahías se vacían y el tráfico acelera +12 % por nivel hasta ×1,96 en el nivel 9.
 - Determinista: no hay azar en el tráfico.
+
+---
+
+## FROGGER
+
+*El Frogger de arcade completo: moscas, cocodrilos y serpientes.*
+
+- **Ruta:** `/games/frogger` · **Motor:** `lib/games/frogger/` (`createFroggerGame`)
+- **Cover:** `.cover-frogger` · **Migración:** `20261009143226_add_frogger_game.sql`
+- **Assets:** ninguno (todo se dibuja en el canvas)
+- **Skins:** classic (default), neon, retro
+
+| Control | Acción |
+| ------- | ------ |
+| `↑` `↓` `←` `→` / `W` `A` `S` `D` | Saltar una celda (40 px); una pulsación = un salto, hasta 2 en cola |
+
+**Táctil** (`lib/games/frogger/touch.ts`): D-pad `↑` `↓` `←` `→` sin diagonales ni autorrepetición (cada toque es un salto) · sin botones de acción.
+
+**Amenazas por nivel**
+- **Nivel 1:** mosca en una bahía libre (visible 4 s de cada 9; +200) y rana dama sobre un tronco de la fila 5 (presente 6 s de cada 16; recogerla y llevarla a una bahía da +200, se pierde si la rana muere).
+- **Nivel 2+:** cocodrilo en la fila 2 (el cuerpo se pisa, la cabeza mata) y cocodrilo de bahía (7 s escondido, 2 s asomando —entrar es seguro y lo ahuyenta—, 3 s con la boca abierta —entrar mata—). Mosca y cocodrilo nunca comparten bahía.
+- **Nivel 3+:** serpiente que patrulla la franja del medio, que deja de ser segura.
+
+**Reglas**
+- Misma grilla que CROAC (20×15): seto con 5 bahías, río (filas 2–6), franja del medio, carretera (filas 8–12), salida y barra de tiempo.
+- 3 vidas y 1 extra al llegar a 10.000 puntos (una vez por partida, máximo 4); 30 s por rana.
+- Muere al tocar un vehículo o la serpiente, la cabeza de un cocodrilo, caer al agua, salir del canvas arrastrada, quedarse sin tiempo, saltar al seto o a una bahía ocupada, o entrar a una bahía con el cocodrilo con la boca abierta.
+- Puntos: 10 por fila nueva, 50 por bahía + 10 por cada medio segundo restante (máx. 600), +200 mosca, +200 dama, 1000 al llenar las 5 bahías.
+- Llenar las 5 bahías sube de nivel; el tráfico y la serpiente aceleran +12 % por nivel hasta ×1,96 en el nivel 9.
+- Determinista: mosca, cocodrilos y dama siguen relojes y rotaciones fijas, sin azar.
 
 ---
 

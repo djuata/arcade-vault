@@ -624,6 +624,41 @@ a { color: inherit; text-decoration: none; }
   filter: drop-shadow(0 0 6px rgba(255,0,110,0.6));
 }
 
+/* Frogger: a dark river with a crocodile (V jaws) mid-stream, a lily pad with a fly, a lime frog on the bank. */
+.cover-frogger {
+  background:
+    linear-gradient(#0a2a12, #0a2a12) 0 100% / 100% 22% no-repeat,
+    linear-gradient(#39ff14, #39ff14) 0 78% / 100% 1.5% no-repeat,
+    radial-gradient(ellipse at 50% 40%, #071a3d, #020814);
+}
+.cover-frogger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* First layer paints on top: eye, back ridges and the river-colored V notch (open jaws) go first.
+     Positions are % of (box − layer size): the body spans 16–62% and the head 62–76%. */
+  background:
+    radial-gradient(closest-side, #f5ff00 40%, transparent 60%) left 65% top 39% / 4% 6% no-repeat,
+    repeating-linear-gradient(90deg, #16602a 0 8px, transparent 8px 16px) left 31% top 45% / 36% 3% no-repeat,
+    conic-gradient(from 60deg at 25% 50%, #061733 0 60deg, transparent 0) left 72% top 43.7% / 14% 16% no-repeat,
+    linear-gradient(#2f9e44, #2f9e44) left 72% top 43.7% / 14% 16% no-repeat,
+    linear-gradient(#2f9e44, #2f9e44) left 29.6% top 44% / 46% 12% no-repeat,
+    radial-gradient(5.95% 7.98% at 84% 18%, #2fbf5a 93%, transparent 100%),
+    radial-gradient(4.37% 5.85% at 18% 22%, rgba(120,200,255,0.25) 91%, transparent 100%);
+  filter: drop-shadow(0 0 6px rgba(57,255,20,0.45));
+}
+.cover-frogger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1.59% 2.13% at 84% 17%, #f5ff00 75%, transparent 100%),
+    radial-gradient(1.59% 2.13% at 81% 14%, rgba(230,233,255,0.85) 75%, transparent 100%),
+    radial-gradient(1.59% 2.13% at 87% 14%, rgba(230,233,255,0.85) 75%, transparent 100%),
+    linear-gradient(#a6ff00, #a6ff00) left 30% top 86% / 10% 12% no-repeat;
+  filter: drop-shadow(0 0 6px rgba(166,255,0,0.7));
+}
+
 /* ===== detail screen ===== */
 .av-detail {
   display: grid;
@@ -1077,6 +1112,15 @@ a { color: inherit; text-decoration: none; }
 body:has(.av-player) .av-nav { position: relative; }
 @media (min-width: 768px) and (min-height: 501px) {
   body:has(.av-player) .av-nav { position: sticky; }
+}
+
+/* Player on desktop/tablet: the whole canvas fits at load (SPEC 17, D1). */
+@media (min-width: 768px) and (min-height: 501px) {
+  .crt {
+    max-width: max(32rem, calc((100vh - 20rem) * 4 / 3 + 3rem));
+    max-width: max(32rem, calc((100dvh - 20rem) * 4 / 3 + 3rem));
+    margin-inline: auto;
+  }
 }
 
 /* game over modal */
