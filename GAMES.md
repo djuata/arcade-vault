@@ -148,6 +148,7 @@ En dispositivos táctiles (`pointer: coarse`) aparece un panel de controles dent
 - **Ruta:** `/games/frogger` · **Motor:** `lib/games/frogger/` (`createFroggerGame`)
 - **Cover:** `.cover-frogger` · **Migración:** `20261009143226_add_frogger_game.sql`
 - **Assets:** ninguno (todo se dibuja en el canvas)
+- **Skins:** classic (default), neon, retro
 
 | Control | Acción |
 | ------- | ------ |

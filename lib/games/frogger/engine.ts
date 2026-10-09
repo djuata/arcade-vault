@@ -1,3 +1,4 @@
+import { resolveSkin } from "../skins";
 import type { GameEngineFactory } from "../types";
 import {
   BAY_COUNT,
@@ -47,13 +48,14 @@ import {
   timeBonusFor,
   tryHop,
 } from "./rules";
+import { FROGGER_SKINS, type FroggerPalette } from "./skins";
 
 type GameState = "playing" | "dying" | "gameover";
 
 const newFrog = (): Frog => ({ x: START_X, row: START_ROW, facing: "up", hopAnimMs: 0 });
 const emptyBays = () => Array.from({ length: BAY_COUNT }, () => false);
 
-export const createFroggerGame: GameEngineFactory = (canvas, callbacks) => {
+export const createFroggerGame: GameEngineFactory = (canvas, callbacks, options) => {
   const maybeCtx = canvas.getContext("2d");
   if (!maybeCtx) throw new Error("Frogger: 2D canvas context is not available");
   const ctx: CanvasRenderingContext2D = maybeCtx;
@@ -76,6 +78,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks) => {
   let animClock = 0;
   let state: GameState = "playing";
 
+  let palette: FroggerPalette = resolveSkin(FROGGER_SKINS, options?.skin);
   let paused = false;
   let destroyed = false;
   let rafId: number | null = null;
@@ -257,7 +260,7 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks) => {
   }
 
   function render() {
-    drawFrame(ctx, { lanes, bays, frog, hazards, deathCause, deathTimerMs, timeLeft, animClock });
+    drawFrame(ctx, { lanes, bays, frog, hazards, deathCause, deathTimerMs, timeLeft, animClock }, palette);
   }
 
   // ── Loop & lifecycle ────────────────────────────────────────────────────────
@@ -303,6 +306,11 @@ export const createFroggerGame: GameEngineFactory = (canvas, callbacks) => {
       initGame();
       paused = false;
       startLoop();
+    },
+    setSkin(id) {
+      if (destroyed) return;
+      palette = resolveSkin(FROGGER_SKINS, id);
+      if (rafId === null) render(); // paused: show the new palette behind the overlay now
     },
     destroy() {
       if (destroyed) return;
