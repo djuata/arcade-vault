@@ -1,6 +1,6 @@
 # SPEC 16 — Skins de FROGGER (classic, neón, retro)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 15 (frogger-game), SPEC 11 (snake-skins)
 > **Date:** 2026-10-09
 > **Objective:** Que FROGGER se pueda jugar con tres paletas de canvas (`classic` por defecto, `neon` y `retro`) elegibles desde el selector del player, reutilizando la plataforma de skins de SPEC 11 sin tocarla.
