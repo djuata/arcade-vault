@@ -68,7 +68,9 @@
 
 ## Aceptados (próximos a implementar)
 
-_(ninguno por ahora)_
+- [ ] **FROGGER** (`frogger`) — ARCADE / green · aceptado 2026-10-09 — spec [15](specs/15-frogger-game.md)
+  - Por qué: el Frogger de arcade completo (mosca, rana dama, cocodrilos, serpiente, vida extra) que CROAC descartó; entrada aparte de CROAC.
+  - Riesgo: "Frogger" es marca registrada; amenazas por nivel con relojes deterministas.
 
 ## Implementados
 
