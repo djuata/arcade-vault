@@ -52,17 +52,11 @@ function PodiumSlot({ row, className, label }: { row: ScoreRow | undefined; clas
   return (
     <div className={`podium-slot ${className}`}>
       {isGold && (
-        <div className="pixel" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}>
-          CAMPEÓN
-        </div>
+        <div className="pixel podium-champion">CAMPEÓN</div>
       )}
-      <div className="rank-num" style={isGold ? { fontSize: 36, marginTop: 4 } : undefined}>
-        {label}
-      </div>
+      <div className="rank-num">{label}</div>
       <div className="name">{row ? row.name : "—"}</div>
-      <div className="score" style={isGold ? { fontSize: 20 } : undefined}>
-        {row ? formatScore(row.score) : "—"}
-      </div>
+      <div className="score">{row ? formatScore(row.score) : "—"}</div>
       <div className="date">{row ? row.date : ""}</div>
     </div>
   );
@@ -123,9 +117,7 @@ export function HallOfFame({ games, scoresByGame }: HallOfFameProps) {
     <div className="av-hall fade-in">
       <div className="hall-head">
         <h1>SALÓN DE LA FAMA</h1>
-        <p className="pixel" style={{ fontSize: 10 }}>
-          LOS NOMBRES QUE NUNCA SE BORRAN DE LA PANTALLA
-        </p>
+        <p className="pixel hall-sub">LOS NOMBRES QUE NUNCA SE BORRAN DE LA PANTALLA</p>
       </div>
 
       <div className="hall-tabs">

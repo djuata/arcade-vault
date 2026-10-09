@@ -144,12 +144,10 @@ export function GamePlayer({ game }: { game: Game }) {
   return (
     <div className="av-player fade-in">
       <div className="player-hud">
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <div className="hud-stat">
+        <div className="hud-stats">
+          <div className="hud-stat player">
             <div className="l">Jugador</div>
-            <div className="v" style={{ color: "var(--ink)" }}>
-              {name}
-            </div>
+            <div className="v">{name}</div>
           </div>
           <div className="hud-stat">
             <div className="l">Puntuación</div>
@@ -210,12 +208,8 @@ export function GamePlayer({ game }: { game: Game }) {
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
               <div>
-                <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
-                  EN PAUSA
-                </div>
-                <div className="mono" style={{ fontSize: 11, color: "var(--ink-dim)", marginTop: 10, letterSpacing: "0.16em" }}>
-                  PULSA REANUDAR PARA CONTINUAR
-                </div>
+                <div className="pixel neon-yellow pause-title">EN PAUSA</div>
+                <div className="mono pause-hint">PULSA REANUDAR PARA CONTINUAR</div>
               </div>
             </div>
           )}
