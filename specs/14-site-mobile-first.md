@@ -1,6 +1,6 @@
 # SPEC 14 — Mobile de todo el sitio (refactor mobile-first)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01 (mvp-visual), SPEC 02 (home-landing-page), SPEC 03 (about-contact-form), SPEC 06 (games-table-and-leaderboard), SPEC 11 (snake-skins), SPEC 12 (touch-controls)
 > **Date:** 2026-10-08
 > **Objective:** Que todas las rutas de UI (`/`, `/games`, `/games/[id]`, `/games/[id]/play`, `/hall-of-fame`, `/login`, `/about`) se vean y se usen bien en celular, tablet y desktop. Para eso se migran los media queries desktop-first de `app/globals.css` (`max-width`) a mobile-first con dos cortes (`min-width: 768px` y `min-width: 1024px`), sin cambiar cómo se ve el desktop a 1280px.
@@ -163,6 +163,7 @@ Las queries `@media (pointer: coarse)` (líneas 799 y 822) **no se tocan**: depe
 - Grid con áreas `"rk pl sc" "rk dt sc"`: la fecha va debajo del jugador, igual que ya hace `.lb-row` en el detalle. En mobile se oculta la celda de encabezado "FECHA", pero el dato sigue visible en cada fila.
 - Descartado el scroll horizontal contenido: la columna que queda fuera de pantalla es justo PUNTUACIÓN, el dato principal.
 - Descartadas las cards: el podio ya cumple ese rol para el top 3, y 10 cards son demasiado alto.
+- **Ajuste durante la implementación (2026-10-08):** en mobile el encabezado `.hall-table .th` se oculta entero; desde 768 se ve como hoy. Con pixel 14px, "RANGO" mide 81px en una columna de 44px y "JUGADOR" 114px en 91px; además encabezado y filas son grids independientes con una columna `auto`, así que nunca se alinean. Las filas se entienden solas (#NN, nombre con la fecha debajo, puntaje en color) y el podio ya etiqueta el top 3. Descartados: encabezado en mono con columna de rango `minmax(2.75rem, auto)` (mantiene etiquetas pero sigue desalineado) y columnas fijas compartidas (un puntaje de 8 cifras no entra en 7rem sin pasar el puntaje a mono).
 
 **D8 — HUD del player en mobile: stats en una fila y acciones en una tira horizontal contenida.**
 - Presupuesto a 375×667: nav 68 + margen 8 + HUD + 8 + CRT (padding 8 + canvas 327×245 + 8 + D-pad 112–142 + 8 + `.crt-bottom` 42 + 8).
@@ -172,6 +173,10 @@ Las queries `@media (pointer: coarse)` (líneas 799 y 822) **no se tocan**: depe
 - Descartado achicar los controles táctiles por debajo de los 3.5rem de SPEC 12.
 - Descartado esconder `.crt-bottom` o los skins.
 - Riesgo aceptado: en mobile el orden visual (botones → skins) difiere del orden de tabulación (skins → botones).
+- **Ajuste durante la implementación (decisión de la persona, 2026-10-08):**
+  - Los **stats** del HUD (`.hud-stats`) hacen `flex-wrap: wrap` también en mobile. El presupuesto de una fila se calculó con SNAKE (3 stats); ROCAS, ARKANOID y CROAC tienen 4 (suman Vidas) y en una fila llegaban a 409px a 375 y 390. Un puntaje de 6 cifras también desbordaba. Con wrap el HUD crece a 2 filas de stats en esos juegos y el alto medido sigue entrando en 375×667. Descartados: encoger los stats (`min-width: 0` + `overflow-wrap`), que parte valores mientras se juega, y scroll lateral en los stats, que esconde el puntaje o las vidas.
+  - En mobile, `.hud-actions .btn` usa padding horizontal `0.75rem` (desde 768, el de hoy). Con 14px, PAUSA/FIN/SALIR ocupaban 335px de 325 y SALIR quedaba cortado sin que asomara CLÁSICO como pista de scroll. Mantiene los 44px de alto.
+  - En mobile, `.hud-stat.player` lleva `max-width: 8.25rem` y su `.v` usa `overflow: hidden; text-overflow: ellipsis; white-space: nowrap` (desde 768, como hoy). Con un nombre de 10 caracteres y un puntaje de 8 cifras, los juegos de 4 stats armaban 3 filas de stats y los controles táctiles terminaban 49px debajo del fold a 375×667. Acotar el nombre evita que ocupe una fila entera. El tope es 8.25rem y no 7rem para que el nombre por defecto "INVITADO" (≈128px en pixel 16px) entre entero: con 7rem el caso más común se veía truncado. Riesgo aceptado: los nombres de 9–10 caracteres se ven truncados en el HUD mobile (el nombre completo sigue en el modal y en los rankings). Descartado aceptar el scroll corto.
 
 **D9 — Player apaisado: canvas acotado por alto y controles a los costados.**
 - Bajo `@media (orientation: landscape) and (max-height: 500px)`, **para cualquier puntero**: `.crt-screen { width: min(100%, calc((100dvh - 6rem) * 4 / 3)); margin-inline: auto }`. Con `aspect-ratio: 4/3` el canvas nunca supera el alto disponible. Esto sí se puede medir en Playwright.
@@ -232,9 +237,9 @@ Reglas para todos los pasos:
    - `app/globals.css`, secciones player y touch:
      - `.av-player`: base `margin: 0.5rem auto`, `padding: 0 1rem 2rem`; `≥768`: `32px auto` y `0 24px 64px`;
      - `.player-hud`: padding `0.5rem` en mobile;
-     - nueva `.hud-stats`: flex de una fila, gap `1rem`, `min-width: 0`; en `≥768`, gap 24 como hoy;
+     - nueva `.hud-stats`: flex con `flex-wrap: wrap`, gap `0.5rem 1rem`, `min-width: 0`; en `≥768`, gap 24 como hoy (ver el ajuste de D8);
      - `.hud-stat .l` con `var(--fs-10)`;
-     - `.hud-actions` en mobile: `flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%`, y `.av-skin-group { order: 1 }` (D8); en `≥768`, como hoy;
+     - `.hud-actions` en mobile: `flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%`, y `.av-skin-group { order: 1 }`, `.hud-actions .btn` con padding horizontal `0.75rem` y `.hud-stat.player` acotado a `8.25rem` con ellipsis (D8); en `≥768`, como hoy;
      - `.crt`: padding `0.5rem` y `border-radius: 1rem` en mobile; `≥768`: 24px / 28px;
      - `.crt-bottom` en mobile: `font-family: var(--mono)`, `var(--fs-8)`, `flex-wrap: wrap` y `gap: 0.25rem 1rem` (D5);
      - `.av-touch-controls` con `margin-top: 0.5rem` en mobile;
@@ -266,7 +271,7 @@ Reglas para todos los pasos:
 6. **Salón de la Fama** (hallazgos 7 y 12; línea 1073 y la tabla de la línea 1133).
    - `app/globals.css`:
      - `.podium`: base 1 columna con `.podium-slot.gold { order: -1 }`; `≥768`: 3 columnas y `order: 0`;
-     - `.hall-table .th, .tr` en base: grid `2.75rem minmax(0, 1fr) auto` con áreas `"rk pl sc" "rk dt sc"`, padding `0.625rem 0.75rem`; `.th > :nth-child(4)` oculto; `.pl` con `overflow-wrap: anywhere`;
+     - `.hall-table .th, .tr` en base: grid `2.75rem minmax(0, 1fr) auto` con áreas `"rk pl sc" "rk dt sc"`, padding `0.625rem 0.75rem`; `.th` oculto en mobile (ajuste de D7); `.pl` con `overflow-wrap: anywhere`;
      - `≥768`: `70px 1fr 1fr 140px`, sin áreas, padding `12px 18px`, encabezado FECHA visible;
      - `.hall-table .tr.you`: el padding-left se ajusta en los dos rangos;
      - textos con tokens (`.rk`, `.sc`, `.th`, `.you-label`, `.podium-slot .name/.date`);
@@ -348,7 +353,7 @@ Reglas para todos los pasos:
 
 **Salón de la Fama**
 
-- [ ] A 375, ninguna celda del encabezado ni de las filas desborda su columna (`scrollWidth ≤ clientWidth` de cada celda). La fecha se ve debajo del jugador.
+- [ ] A 375, el encabezado `.th` no se muestra (ajuste de D7) y ninguna celda de las filas desborda su columna (`scrollWidth ≤ clientWidth` de cada celda). La fecha se ve debajo del jugador.
 - [ ] A 375, el podio se lee 01, 02, 03 de arriba hacia abajo.
 
 **Home**
@@ -392,7 +397,7 @@ Herramientas:
 | `/games/snake/play` → FIN | iPhone SE vertical y apaisado | El modal entra. Al enfocar el input el teclado no tapa el botón: se puede scrollear dentro del modal. Sin zoom al enfocar. "GUARDAR PUNTUACIÓN" se ve entero. |
 | `/hall-of-fame` | iPhone SE | Podio 01 → 02 → 03. Tabla con la fecha debajo del nombre. Tabs con wrap. |
 | `/login` | iPhone SE | Sin zoom al enfocar los campos. Los botones de 44px. Los dos tabs. |
-| `/about` | iPhone SE, iPad Mini | Highlights en 1 columna (SE) y 3 (iPad) sin desborde. El formulario se envía (o muestra error) y no hay zoom al enfocar. |
+| `/about` | iPhone SE, iPad Mini | Highlights en 1 columna (SE y iPad Mini) y en 3 desde 1024, sin desborde. El formulario se envía (o muestra error) y no hay zoom al enfocar. |
 | todas | 1280×800 | Comparar lado a lado con `main` (o con la línea base de estilos computados): debe verse idéntico. |
 
 ---
@@ -410,6 +415,8 @@ Herramientas:
 | En iOS con la barra de Safari visible, 375×667 real tiene ≈550px útiles | La nav no es sticky en el player (D10), así que un scroll corto lo muestra todo. Se verifica en el iPhone real. |
 | `.mini-rail` a 1024–1100 con 6 columnas queda apretado | Las tarjetas miden ≈147px, con título de 10px y cover cuadrada. Cambio explícito, confirmado por la persona al revisar el Draft. |
 | `.highlight-row` apilado en 821–1023 alarga `/about` en tablet | Aceptado por la persona: prefiere apilar a 3 columnas apretadas. |
+| "INVITADO" ocupa exactamente el tope de `.hud-stat.player` en mobile (129 de 129px) | Cualquier cambio de fuente, tamaño o `letter-spacing` en `.hud-stat .v` lo vuelve a truncar: re-medir a 375 si se toca. |
+| `margin-block: auto` del modal (D11) cambia el `margin` calculado de `.modal` (`0px` → px resueltos) a 768, 1024 y 1280 | Misma posición y sin cambio visible; es la única diferencia contra la línea base de estilos calculados en desktop. |
 
 ---
 
