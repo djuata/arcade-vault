@@ -49,7 +49,7 @@ Hay una más de la página de detalle a 375×667 que quedó en la raíz del repo
 | 2 | `/games/frogger/play` | 375×667, 390×844 | Con el canvas a escala 0,41 (327×245): la mosca es un punto de ≈3px (radio 4 → 1,6), los ojos del cocodrilo de bahía en fase `peek` miden ≈4×3px (10×8) y los dientes ≈1,2px (3×3). La diferencia entre `peek` (se puede entrar) y `jaws` (mata) es difícil de leer en un teléfono. En apaisado la escala es 0,465 (372×279). | `lib/games/frogger/render.ts:224`, `:233-235`, `:250`, `:309-310`; `mobile-frogger-play-375-touch.png` | media (**fuera de alcance**, ver D3) |
 | 3 | `/games/frogger`, `/games` | 1280×800, 768×1024 | `.cover-frogger` ubica el río, el cocodrilo y la rana en `%`, pero el nenúfar (radio 14px), la onda (10px), la mosca y sus alas (3px) y el ojo del cocodrilo (2px) tienen radios fijos en `px`. En la tarjeta de 252×188 el nenúfar ocupa el 11% del ancho; en la portada del detalle (690×432 a 1280, 704×440 a 768) ocupa el 4%, y la mosca queda en un punto de 6px. La composición cambia según el tamaño de la caja. | `app/globals.css:639-655`; `mobile-frogger-card-1280.png` frente a `mobile-frogger-detail-1280.png` | baja |
 | 4 | `/games/frogger` | 375×667 | En `.stat-strip`, "MEJOR GLOBAL" y "★ ★ ★ ☆ ☆" se parten en 2 líneas (columna de ≈100px). Se lee bien y es igual en el detalle de todos los juegos. | `components/detail/GameDetail.tsx:27-44`; `mobile-frogger-detail-375.png` | baja (aceptado, no se toca) |
-| 5 | `/games/frogger/play` | iPad apaisado 1024×768 con `pointer: coarse` (fuera de la tabla, por lectura de código) | El grid lateral de D9 (SPEC 14) solo aplica con `max-height: 500px`. En un iPad apaisado el D-pad (160px) queda debajo del canvas, fuera de pantalla. D1 lo mejora (el canvas pasa de 696 a 512px de alto), pero no alcanza: el D-pad termina en ≈941px. | `app/globals.css:1091-1106` | media (**fuera de alcance**, ver Riesgos) |
+| 5 | `/games/frogger/play` | iPad apaisado 1024×768 con `pointer: coarse` (fuera de la tabla, por lectura de código) | El grid lateral de D9 (SPEC 14) solo aplica con `max-height: 500px`. En un iPad apaisado el D-pad (160px) queda debajo del canvas, fuera de pantalla. D1 lo mejora (el canvas pasa de 696 a 448px de alto con `20rem`), pero no alcanza: el D-pad termina en ≈877px (estimado: ≈941 con la versión original de `16rem`, menos 64px). | `app/globals.css:1091-1106` | media (**fuera de alcance**, ver Riesgos) |
 
 **Sin problemas** (medido):
 
@@ -85,7 +85,7 @@ Hay una más de la página de detalle a 375×667 que quedó en la raíz del repo
 - El hallazgo 4: es igual en todos los detalles y se lee bien.
 - `components/**`: no hace falta markup nuevo.
 - `TouchControls.tsx`, `lib/games/frogger/touch.ts`, `GameCanvas.tsx` y la resolución interna de 800×600.
-- El orden de las capas de `.cover-frogger::before`: los dientes del cocodrilo quedan tapados por el cuerpo, porque la capa de dientes va después de la del cuerpo y en `background` la primera capa se pinta arriba. No es de responsive; queda anotado en Riesgos para la SPEC 15.
+- El orden de las capas de `.cover-frogger::before`. *Enmienda 2026-10-09:* ya está corregido fuera de esta spec (commit de la SPEC 15). Esta spec no lo cambia.
 - El export `viewport`, safe areas, PWA y pantalla completa.
 - Tests automatizados: el proyecto no tiene test runner.
 
@@ -98,8 +98,8 @@ Hay una más de la página de detalle a 375×667 que quedó en la raíz del repo
 ```css
 @media (min-width: 768px) and (min-height: 501px) {
   .crt {
-    max-width: max(32rem, calc((100vh - 16rem) * 4 / 3 + 3rem));
-    max-width: max(32rem, calc((100dvh - 16rem) * 4 / 3 + 3rem));
+    max-width: max(32rem, calc((100vh - 20rem) * 4 / 3 + 3rem));
+    max-width: max(32rem, calc((100dvh - 20rem) * 4 / 3 + 3rem));
     margin-inline: auto;
   }
 }
@@ -107,27 +107,30 @@ Hay una más de la página de detalle a 375×667 que quedó en la raíz del repo
 
 Por qué funciona:
 
-- **`16rem` (256px)** es lo que hay arriba del canvas en desktop, con margen: nav sticky (70–85px), 32px de margen, HUD (73px), 18px de separación y 24px de padding del CRT. Eso suma 217–232px; se le agregan unos 24px de aire.
-- **`+ 3rem`** es el padding horizontal del `.crt` (24px por lado). Así el canvas mide `(alto − 16rem) × 4/3` de ancho y, por el `aspect-ratio`, `alto − 16rem` de alto.
+- **`20rem` (320px)** es lo que hay arriba del canvas en desktop, con margen: nav sticky (70–85px), 32px de margen, HUD, 18px de separación y 24px de padding del CRT. Con el selector de skins de la SPEC 16, el HUD pasa a **2 filas a 1024px** (133px en lugar de 74px, +59px). Así el total llega a ≈277–292px, y se le agregan unos 28px de aire.
+  - *Enmienda 2026-10-09:* la versión aprobada original usaba `16rem`, que suponía un HUD de una fila. En la Fase B, con la SPEC 16 implementada, a 1024×768 el canvas terminaba en y=808,5 (40,5px bajo el fold). Se cumplió la condición de corte de Riesgos y la persona eligió `20rem`, la salida prevista. Costo aceptado: a 1280×800 el canvas baja de 725×544 a 640×480.
+- **`+ 3rem`** es el padding horizontal del `.crt` (24px por lado). Así el canvas mide `(alto − 20rem) × 4/3` de ancho y, por el `aspect-ratio`, `alto − 20rem` de alto.
 - **`max(32rem, …)`** pone un piso para alturas chicas. La tira `.crt-bottom` necesita ≈477px en pixel 8px sin `wrap` (medido: 413px de spans + paddings).
 - **`min-height: 501px`** deja afuera los apaisados bajos, donde manda D9 de la SPEC 14 (`max-height: 500px`). Las dos queries no se pisan y el orden en el archivo no importa.
 - **`100vh` como fallback** de `100dvh`: en desktop valen lo mismo.
 
-**Medido con la regla inyectada** (screen = ancho × alto del canvas; bottom = borde inferior en `scrollY = 0`):
+**Medido con la regla inyectada** en la Fase B, con el selector de skins de la SPEC 16 en el HUD (screen = ancho × alto del canvas; bottom = borde inferior en `scrollY = 0`):
 
-| Viewport | Antes | Con D1 | ¿Entra? |
+| Viewport | Antes | Con D1 (`20rem`) | ¿Entra? |
 | -------- | ----- | ------ | ------- |
-| 1280×800 | 1004×753 | 725×544, bottom 776 | sí |
-| 1366×768 | — | 683×512, bottom 729 | sí |
-| 1024×768 | 928×696 | 683×512, bottom 748 | sí |
+| 1280×800 | 1004×753 | 640×480, bottom ≈713 (calculado) | sí |
+| 1366×768 | — | 597×448, bottom 666 | sí |
+| 1024×768 | 928×696 (HUD de 2 filas) | 597×448, bottom 744,5 | sí |
 | 768×1024 | 672×504 | sin cambio | sí |
 | 1920×1080 | 1004×753 | sin cambio | sí |
+
+Con `16rem`, a 1024×768 el canvas terminaba en 808,5 (no entraba): por eso la enmienda.
 
 En todos los casos se mantiene el 4:3 (1,3334) y no aparece overflow.
 
 Qué se ve distinto:
 
-- El HUD sigue ocupando todo el ancho (1052px a 1280) y el CRT queda centrado debajo, más angosto (773px a 1280).
+- El HUD sigue ocupando todo el ancho (1052px a 1280) y el CRT queda centrado debajo, más angosto (≈688px a 1280).
 - Afecta a **los 6 juegos**, porque el CSS del player es compartido. Es un cambio **explícito** del desktop: en pantallas de ≤ ~1000px de alto, todos los canvas se achican para entrar enteros.
 
 Descartadas:
@@ -153,7 +156,7 @@ Descartadas:
 | ---- | --- | ------- |
 | Nenúfar (`::before`) | `radial-gradient(circle at 84% 18%, #2fbf5a 0 14px, transparent 15px)` | `radial-gradient(5.95% 7.98% at 84% 18%, #2fbf5a 93%, transparent 100%)` |
 | Onda (`::before`) | `radial-gradient(circle at 18% 22%, rgba(120,200,255,0.25) 0 10px, transparent 11px)` | `radial-gradient(4.37% 5.85% at 18% 22%, rgba(120,200,255,0.25) 91%, transparent 100%)` |
-| Ojo del cocodrilo (`::before`) | `radial-gradient(circle, #f5ff00 0 2px, transparent 3px) left 62% top 43% / 4% 6% no-repeat` | `radial-gradient(closest-side, #f5ff00 40%, transparent 60%) left 62% top 43% / 4% 6% no-repeat` |
+| Ojo del cocodrilo (`::before`) | `radial-gradient(circle, #f5ff00 0 2px, transparent 3px) left 65% top 39% / 4% 6% no-repeat` | `radial-gradient(closest-side, #f5ff00 40%, transparent 60%) left 65% top 39% / 4% 6% no-repeat` |
 | Mosca (`::after`) | `radial-gradient(circle at 84% 17%, #f5ff00 0 3px, transparent 4px)` | `radial-gradient(1.59% 2.13% at 84% 17%, #f5ff00 75%, transparent 100%)` |
 | Alas (`::after`, ×2) | `radial-gradient(circle at 81% 14% / 87% 14%, rgba(230,233,255,0.85) 0 3px, transparent 4px)` | `radial-gradient(1.59% 2.13% at 81% 14% / 87% 14%, rgba(230,233,255,0.85) 75%, transparent 100%)` |
 
@@ -161,7 +164,8 @@ Descartadas:
 - El ojo usa `closest-side` de su caja de 4%×6% (≈10×11px en la tarjeta): 2px y 3px dan 40% y 60%.
 - La caja de 252×188 es la tarjeta de `/games` a 1280. Se eligió porque es donde el usuario compara portadas.
 - En el detalle a 1280 (690×432) el nenúfar pasa de 28px a ≈82×69px y queda en la misma proporción que en la tarjeta.
-- Los dientes (`repeating-linear-gradient` de 8px/16px) no se tocan, porque están tapados (ver Fuera de alcance).
+- Las rayas del lomo (`repeating-linear-gradient` de 8px/16px) no se tocan: son un patrón, no un radio, y se leen igual en la tarjeta y en el detalle.
+- *Enmienda 2026-10-09:* después de escribir esta spec, la portada se corrigió fuera de ella. Ahora el ojo, las rayas y la muesca en V de la boca van antes que el cuerpo; el cuerpo ocupa 16–62% y la cabeza 62–76%; y el ojo pasó a `left 65% top 39%`. Esta tabla ya usa esos valores. Las demás capas de D4 (nenúfar, onda, mosca y alas) no cambiaron.
 - Descartado `cqi`/`cqw` con `container-type` en `.cover-bg`: cambia el modelo de layout de todas las portadas para arreglar una sola.
 
 **D5 — Se mantienen los breakpoints de la SPEC 14 (`min-width: 768/1024px`) y la query de alto de D10 como patrón.** D1 usa `(min-width: 768px) and (min-height: 501px)`, la misma forma que la regla de la nav sticky (`app/globals.css:1110`). Así no se suma un corte nuevo.
@@ -182,7 +186,8 @@ Reglas:
 2. **Portada que escala** (hallazgo 3, baja).
    - En `app/globals.css`, dentro de `.cover-frogger::before` y `.cover-frogger::after` (líneas 634-657), reemplazar las 6 capas de la tabla de D4.
    - No cambiar el orden de las capas, ni las demás, ni `filter`.
-   - Prueba: screenshot de la tarjeta en `/games` a 1280 (252×188), comparado con `mobile-frogger-card-1280.png` (deben coincidir a simple vista), y screenshot del detalle a 375, 768 y 1280 (el nenúfar y la mosca mantienen su proporción).
+   - Antes del paso: tomar una línea base nueva de la tarjeta, `.playwright-mcp/spec17-card-1280-before.png`. La de la Fase A (`mobile-frogger-card-1280.png`) es anterior a la corrección de la portada y ya no sirve.
+   - Prueba: screenshot de la tarjeta en `/games` a 1280 (252×188), comparado con `spec17-card-1280-before.png` (deben coincidir a simple vista), y screenshot del detalle a 375, 768 y 1280 (el nenúfar y la mosca mantienen su proporción).
 3. **Cierre.** Repetir la medición completa de los criterios en todos los viewports, más `/games/snake/play` y `/games/arkanoid/play` a 1280×800 (el cambio de D1 los alcanza). Si SPEC 16 ya está implementada, medir con el selector de skins visible.
 
 ---
@@ -203,7 +208,7 @@ Reglas:
 **Player**
 
 - [ ] **1280×800, 1366×768 y 1024×768**: en `scrollY = 0`, `.crt-screen.getBoundingClientRect().bottom <= innerHeight`. Se ven la fila de salida y la barra de tiempo de FROGGER al cargar.
-- [ ] **1280×800**: `.crt-screen` mide 725×544 (±2px) y `.crt` está centrado bajo el HUD (`left` y `right` simétricos ±1px respecto de `.player-hud`).
+- [ ] **1280×800**: `.crt-screen` mide 640×480 (±2px) y `.crt` está centrado bajo el HUD (`left` y `right` simétricos ±1px respecto de `.player-hud`).
 - [ ] **768×1024 y 1920×1080**: los rects de `.crt` y `.crt-screen` son iguales a la línea base.
 - [ ] **375×667**, con `.av-touch-controls { display: grid }` forzado: en `scrollY = 0`, `.crt-screen` y `.av-touch-controls` quedan enteros dentro del viewport (`bottom ≤ 667`), también con el peor caso del HUD (nombre de 10, `99.999.999`, `♥ ♥ ♥ ♥`).
 - [ ] **390×844**, en las mismas condiciones: `.crt` entero dentro del viewport en `scrollY = 0`.
@@ -213,9 +218,9 @@ Reglas:
 
 **Portada**
 
-- [ ] En `/games` a 1280, la tarjeta de FROGGER se ve igual que en `mobile-frogger-card-1280.png`.
+- [ ] En `/games` a 1280, la tarjeta de FROGGER se ve igual que en `spec17-card-1280-before.png` (línea base tomada antes del paso 2).
 - [ ] En `/games/frogger` a 375, 768 y 1280, el nenúfar mide entre el 10% y el 13% del ancho de la portada, y la mosca y sus alas se ven sobre el nenúfar.
-- [ ] `rg -n '[0-9]px' app/globals.css` dentro del bloque `.cover-frogger` solo devuelve la `drop-shadow` y el `repeating-linear-gradient` de los dientes.
+- [ ] `rg -n '[0-9]px' app/globals.css` dentro del bloque `.cover-frogger` solo devuelve la `drop-shadow` y el `repeating-linear-gradient` de las rayas del lomo.
 
 **El desktop se ve igual que antes, salvo lo explícito**
 
@@ -260,12 +265,12 @@ Herramientas:
 | Riesgo | Mitigación |
 | ------ | ---------- |
 | D1 cambia el tamaño del canvas en desktop para **todos** los juegos, no solo FROGGER | Es explícito en Decisiones y en los criterios. La alternativa con `data-game` está documentada por si la persona prefiere acotarlo a FROGGER. |
-| `16rem` asume un HUD de una fila. Con el selector de SPEC 16 + 4 stats + un puntaje largo, el HUD podría pasar a 2 filas a 1024px y empujar el canvas ≈60px | El paso 3 mide con SPEC 16 implementada. Si no entra, frenar y reportar (subir a `20rem` o revisar el HUD), sin improvisar. |
+| *Ocurrido y resuelto (enmienda 2026-10-09):* con el selector de la SPEC 16, el HUD pasa a 2 filas a 1024px (+59px) y `16rem` no alcanzaba | D1 sube a `20rem`. Si en algún viewport ≥ 768×501 el HUD llegara a 3 filas, frenar y reportar: la salida de fondo es reubicar el selector (spec propia, toca `components/**`). |
 | El margen a 375×667 es de 8px (los controles terminan en 659) | Cualquier cambio futuro en el HUD o en `.crt-bottom` lo puede romper. Este es el criterio que hay que volver a medir. |
 | En pantallas de 501–620px de alto (ventanas chicas), el piso de `32rem` hace que el canvas vuelva a pasar el fold | Es un caso raro en desktop. El piso evita que `.crt-bottom` desborde, que se vería roto. |
 | La legibilidad en mobile (hallazgo 2) queda sin resolver | Fuera de alcance por límites (motor). Se recomienda el apaisado y se deja la pregunta en la verificación con teléfono real. |
 | iPad apaisado táctil (hallazgo 5): el D-pad queda debajo del fold | D1 lo mejora (canvas de 512 en lugar de 696px de alto), pero no alcanza. Necesita su propia spec, extendiendo D9 de la SPEC 14 a `pointer: coarse` con más alto, y medirse en un iPad real. |
-| Los dientes del cocodrilo de `.cover-frogger` no se ven (capa debajo del cuerpo) | No es de responsive. Se reporta para corregirlo en la SPEC 15 o en una spec de portada. |
+| *Resuelto fuera de esta spec (enmienda 2026-10-09):* las capas del cocodrilo de `.cover-frogger` estaban tapadas | Corregido en el commit de la SPEC 15. D4 ya usa las posiciones nuevas. |
 | Los porcentajes de D4 redondean y la tarjeta cambia 1px | El criterio es a simple vista contra el screenshot. Con `closest-side` y radios explícitos no hay dependencia del tamaño. |
 
 ---
