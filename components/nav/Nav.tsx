@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session-context";
+
+const PANEL_ID = "av-mobile-panel";
 
 export function Nav() {
   const pathname = usePathname();
   const { user, logout } = useSession();
   const [open, setOpen] = useState(false);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   const isHomeActive = pathname === "/";
   const isLibraryActive = pathname === "/games" || pathname.startsWith("/games/");
@@ -17,6 +21,22 @@ export function Nav() {
   const isLoginActive = pathname === "/login";
 
   const close = () => setOpen(false);
+
+  // While the panel is open: focus its first link and close on Escape.
+  // On close, focus goes back to the hamburger.
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current?.querySelector<HTMLElement>("a")?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const hamburger = hamburgerRef.current;
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      hamburger?.focus();
+    };
+  }, [open]);
 
   return (
     <>
@@ -55,16 +75,30 @@ export function Nav() {
             Iniciar Sesión
           </Link>
         )}
-        <button className="btn ghost hamburger" onClick={() => setOpen(true)} aria-label="Menú">
+        <button
+          ref={hamburgerRef}
+          className="btn ghost hamburger"
+          onClick={() => setOpen(true)}
+          aria-label="Menú"
+          aria-expanded={open}
+          aria-controls={PANEL_ID}
+        >
           ≡
         </button>
       </nav>
 
       <div className={`av-mobile-backdrop${open ? " open" : ""}`} onClick={close} />
-      <aside className={`av-mobile-panel${open ? " open" : ""}`}>
-        <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
-          MENÚ
-        </div>
+      <aside
+        ref={panelRef}
+        id={PANEL_ID}
+        aria-label="Menú"
+        inert={!open}
+        className={`av-mobile-panel${open ? " open" : ""}`}
+      >
+        <div className="pixel neon-cyan av-mobile-panel-title">MENÚ</div>
+        <button className="av-mobile-panel-close" onClick={close} aria-label="Cerrar menú">
+          ✕
+        </button>
         <Link href="/" className={isHomeActive ? "active" : ""} onClick={close}>
           Inicio
         </Link>
@@ -80,10 +114,19 @@ export function Nav() {
         <Link href="/login" className={isLoginActive ? "active" : ""} onClick={close}>
           {user ? "Cuenta" : "Iniciar Sesión"}
         </Link>
+        {user && (
+          <button
+            className="btn ghost"
+            onClick={() => {
+              logout();
+              close();
+            }}
+          >
+            {user.name} ▾
+          </button>
+        )}
         <div style={{ flex: 1 }} />
-        <div className="pixel" style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.16em" }}>
-          CRÉDITOS · 03
-        </div>
+        <div className="pixel av-mobile-panel-credits">CRÉDITOS · 03</div>
       </aside>
     </>
   );
