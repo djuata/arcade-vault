@@ -1,6 +1,6 @@
 # To-do de juegos — Arcade Vault
 
-> Mantenido por el agente `game-planner`. Última actualización: 2026-10-08.
+> Mantenido por el agente `game-planner`. Última actualización: 2026-10-09.
 > Para decidir: aceptar → mover a "Aceptados"; rechazar → mover a "Descartados" con el motivo.
 
 ## Pendientes de decisión
@@ -68,9 +68,7 @@
 
 ## Aceptados (próximos a implementar)
 
-- [ ] **FROGGER** (`frogger`) — ARCADE / green · aceptado 2026-10-09 — spec [15](specs/15-frogger-game.md)
-  - Por qué: el Frogger de arcade completo (mosca, rana dama, cocodrilos, serpiente, vida extra) que CROAC descartó; entrada aparte de CROAC.
-  - Riesgo: "Frogger" es marca registrada; amenazas por nivel con relojes deterministas.
+_(ninguno por ahora)_
 
 ## Implementados
 
@@ -79,6 +77,7 @@
 - [x] **ARKANOID** (`arkanoid`) — spec [08](specs/08-arkanoid-game.md)
 - [x] **SNAKE** (`snake`) — spec [09](specs/09-snake-game.md)
 - [x] **CROAC** (`croac`) — ganó el game jam "Cruza la carretera y el río sin convertirte en papilla" 2026-10-07 — spec [10](specs/10-croac-game.md)
+- [x] **FROGGER** (`frogger`) — arcade completo (mosca, dama, cocodrilos, serpiente, vida extra) — spec [15](specs/15-frogger-game.md)
 
 ## Descartados
 
