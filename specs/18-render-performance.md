@@ -1,6 +1,6 @@
 # SPEC 18 — Rendimiento de render: fondo global y glow de los motores
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 10 (croac-game), SPEC 11 (snake-skins), SPEC 14 (site-mobile-first), SPEC 15 (frogger-game), SPEC 16 (frogger-skins)
 > **Date:** 2026-10-09
 > **Objective:** Medir el costo de render del sitio y de los 6 juegos con un baseline repetible (CPU en desktop, frames en un Android real), y bajarlo hasta los umbrales de esta spec sin cambios visuales perceptibles.
