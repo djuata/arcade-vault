@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `/games/[id]` | `app/games/[id]/page.tsx` → `components/detail/` | Game detail + top 10 |
 | `/games/[id]/play` | `app/games/[id]/play/page.tsx` → `components/player/` | Player: canvas engine + HUD + save score |
 | `/hall-of-fame` | `app/hall-of-fame/page.tsx` → `components/hall-of-fame/` | Top 10 per game, tabbed |
-| `/login` | `app/login/page.tsx` → `components/auth/` | Mock login/signup (localStorage) |
+| `/login` | `app/login/page.tsx` → `components/auth/` | Supabase Auth sign-in/sign-up (Server Actions in `app/login/actions.ts`); redirects to `/games` with a session (spec 19) |
 | `/about` | `app/about/page.tsx` → `components/about/` | About + contact form (spec 03) |
 | `POST /api/contact` | `app/api/contact/route.ts` | Zod-validated contact form → Resend email (honeypot field) |
 | `GET /api/health/supabase` | `app/api/health/supabase/route.ts` | Supabase connectivity check |
@@ -51,29 +51,35 @@ Pages are thin async Server Components that fetch data and hand it to a componen
 ### Data layer (Supabase)
 
 - Clients: `lib/supabase/server.ts` (async, cookie-aware, for Server Components/route handlers) and `lib/supabase/client.ts` (browser). Both typed with `lib/supabase/database.types.ts` (generated — regenerate with the Supabase MCP `generate_typescript_types` **only** when the schema changes).
-- Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key only — never a secret/service key). See `.env.example`.
-- Schema (`supabase/migrations/`): tables `games` (catalog; `cat`/`color` have CHECK constraints, `sort_order`, `playable`) and `scores` (`player_name` 1–10 chars, `score` 1–99,999,999). Views `games_with_stats` (adds `best_score`, `plays_count`) and `scores_ranked` (adds `rank`), both `security_invoker`.
-- **RLS**: everything is publicly readable; `scores` insert is only allowed for games with `playable = true`. No other writes.
+- Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key only — never a secret/service key), plus server-only `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` for `/api/contact` (`lib/resend.ts`, `lib/contact.ts`). See `.env.example`.
+- Schema (`supabase/migrations/`): tables `games` (catalog; `cat`/`color` have CHECK constraints, `sort_order`, `playable`), `profiles` (`id` = `auth.users.id`, unique `username` `^[A-Z0-9_]{3,10}$`, `INVITADO` reserved; created only by the `handle_new_user` trigger on `auth.users`, whose `EXECUTE` is revoked) and `scores` (`player_name` 1–10 chars, `score` 1–99,999,999, nullable `user_id` → `profiles`). Views `games_with_stats` (adds `best_score`, `plays_count`) and `scores_ranked` (adds `rank`, `user_id`), both `security_invoker`.
+- **RLS**: everything is publicly readable. `scores` insert only for `playable` games, and: `authenticated` must use `user_id = auth.uid()` and `player_name` = its profile username; `anon` must use `user_id` null and a `player_name` that isn't a registered username. No other writes (`profiles` is written only by the trigger).
 - Readers: `lib/data/games.ts` (`getGames`, `getGameById`, wrapped in React `cache`) and `lib/data/scores.ts` (`getTopScores`, `getTopScoresByGame`). Domain types (`Game`, `ScoreRow`, `GameCategory`, `GameAccent`) and helpers (`toPlayerName`, `formatBest`) live in `lib/games.ts`. Errors thrown to the UI are generic Spanish messages — never leak Supabase details.
 - Migrations: one file per change, `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql`, applied with the Supabase MCP `apply_migration` using the same SQL. Project ref is in `.mcp.json`.
 
 ### Game engines
 
 - Every game is a **pure-TS canvas engine** in `lib/games/<slug>/` (no React), exposing a factory `create<Name>Game(canvas, callbacks): GameEngine`. Contracts in `lib/games/types.ts`: `GameEngine` (`pause/resume/restart/destroy`) and `GameCallbacks` (`onScore`, `onLevel`, `onGameOver`, optional `onLives` — when an engine never emits it, the HUD hides lives).
-- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake` — the whole catalog (spec 13 removed the engine-less placeholders). **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one. Candidate games live in **`GAMES-TODO.md`** (maintained by the `game-planner` agent).
+- `lib/games/registry.ts` → `GAME_ENGINES` maps slug → factory. Currently playable: `rocas` (Asteroids), `tetris`, `arkanoid`, `snake`, `croac`, `frogger` — the whole catalog (spec 13 removed the engine-less placeholders). **`GAMES.md`** documents every playable game (controls, rules, files) — keep it in sync when adding one. Candidate games live in **`GAMES-TODO.md`** (maintained by the `game-planner` agent).
 - `components/player/GameCanvas.tsx` mounts the engine (fixed 800×600, CSS-scaled to 4:3) and destroys it on unmount; `callbacks` must be referentially stable. `components/player/GamePlayer.tsx` owns the chrome: HUD, pause (`P`), "FIN DEL JUEGO" modal, and inserting the score into `scores` via the browser client. Engines draw only the game.
-- **Invariant**: slug = `games.id` = route segment = `GAME_ENGINES` key = `scores.game_id` = engine folder. And `GAME_ENGINES[slug]` exists **⇔** `games.playable = true` — always change both together.
+- **Invariant**: slug = `games.id` = route segment = `GAME_ENGINES` key = `scores.game_id` = engine folder (one legacy exception: `rocas` lives in `lib/games/asteroids/`; new games must match). And `GAME_ENGINES[slug]` exists **⇔** `games.playable = true` — always change both together.
 - **Touch controls (spec 12)**: `components/player/TouchControls.tsx` renders a D-pad + action buttons inside `.crt`, below the canvas, only on `@media (pointer: coarse)`. It dispatches synthetic `KeyboardEvent`s on `window`, so engines must read **only `e.code`** (never `e.key`/`isTrusted`). Each game's layout lives in `lib/games/<slug>/touch.ts` and is registered in `GAME_TOUCH_CONTROLS` (`lib/games/registry.ts`); types and the D-pad math are in `lib/games/touch-controls.ts`. An engine without a layout shows "REQUIERE TECLADO".
+- **Skins (specs 11, 16)**: optional palette skins (`classic` default, `neon`, `retro`) via `lib/games/skins.ts`, per-game `lib/games/<slug>/skins.ts`, `GAME_SKINS` in the registry and `components/player/SkinSelector.tsx` (persists `av_skin_<slug>`). Engines take `options.skin` and may expose `setSkin?` (live swap). Today only `snake` and `frogger` have skins.
 - **Glow (spec 18)**: `shadowBlur` is expensive on mobile GPUs. For fixed-size glowing rects use `createGlowCache()` from `lib/games/glow-cache.ts` (one sprite per color+size+blur, `clear()` on `setSkin` and `destroy`); keep `shadowBlur` only for shapes whose size changes every frame. Static backgrounds go in an offscreen canvas (see `lib/games/frogger/render.ts`). Don't add CSS animations that keep running behind the player: the canvas forces a main-thread frame every rAF, which ticks every live animation.
 - Sprite assets live in `public/games/<slug>/`. Original sources in `resources/started-games/` are reference only — never edit `resources/`.
 
 ### Session
 
-`lib/session-context.tsx` is a **mock** session (`SessionProvider` / `useSession`) backed by `localStorage` key `av_user` via `useSyncExternalStore`. There is no real auth yet; the player name comes from it or from the save-score modal.
+Real auth since **spec 19**: Supabase Auth with email + password (no email confirmation, min 8 chars — dashboard settings, not in migrations). OAuth is spec 20.
+
+- **Cookies are HttpOnly** (`lib/supabase/session-cookies.ts`, passed as `cookieOptions` to the server client and the proxy). The browser client never sees the session, so **anything that needs the user runs on the server**: `app/login/actions.ts` (`signIn`/`signUp`/`signOut`, Zod in `lib/auth/schemas.ts`, Spanish messages in `lib/auth/messages.ts`) and `app/games/[id]/play/actions.ts` (`saveScore`). The browser client is only for public reads.
+- `proxy.ts` (Next 16's renamed middleware) → `lib/supabase/proxy.ts` `updateSession` refreshes the token on every request.
+- `lib/auth/session.ts` `getSessionUser()` (React `cache`) reads claims + profile; `app/layout.tsx` passes it to `SessionProvider` (`lib/session-context.tsx`), which exposes `{ user: { id, name } | null, logout }`. No `onAuthStateChange`: auth actions set cookies and the layout re-renders. `logout` = `signOut` + full navigation to `/`.
+- Login is optional; no route is protected. Logged in, the score name is the username (not editable); guests type a free name.
 
 ## Workflow: spec-driven development
 
-Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:** Draft → Approved → Implemented`). Specs 01–09 are implemented: MVP visual, home, about/contact, Supabase connection, Asteroids, games table + leaderboard, Tetris, Arkanoid, Snake.
+Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:** Draft → Approved → Implemented`). Specs 01–18 are all Implemented (games: 05 Asteroids, 07 Tetris, 08 Arkanoid, 09 Snake, 10 Croac, 15 Frogger; skins 11/16; touch 12; mobile-first 14/17; render performance 18). `specs/game-jam/` keeps the jam proposals as history.
 
 - One branch per spec: `spec-NN-<slug>` (`specs/.spec-config.yml` → `AutoCreateBranch: true`), merged via PR.
 - Conventional commits: `docs: add spec NN ...` → `feat: ... (spec NN)` → `docs: mark spec NN as implemented`.
@@ -82,25 +88,26 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 
 | Skill | Use |
 | ----- | --- |
-| `/spec` | Guided spec designer; writes `specs/NN-*.md` as Draft. User-invoked only (from `Klerith/fernando-skills`, pinned in `skills-lock.json`). |
+| `/spec` | Guided spec designer; writes `specs/NN-*.md` as Draft. User-invoked only. |
 | `/spec-impl <NN-spec>` | Implements an **Approved** spec: creates the branch and goes step by step pausing for diffs. User-invoked only. |
-| `/spec-impl-game <NN-slug-game>` | `/spec-impl` for **game specs** (`specs/NN-<slug>-game.md`): reads and follows `spec-impl`'s phases as-is (not a copy), then automatically runs `skin-designer` and **then** `mobile-porter` (`/games/<slug>` + `/games/<slug>/play`) — sequentially, since both take "highest spec + 1". Both only write Draft specs (Phase A). User-invoked only. |
-| `arcade-vault-game` | Create or port a game (engine + registry + migration + cover CSS + RLS check). **Spec-first**: writes the Draft spec, then STOPS for approval before touching `lib/`, `app/` or `supabase/`. Includes templates in `assets/` (`engine.ts.tpl`, `input.ts.tpl`, `migration.sql.tpl`). |
-| `/frontend-design` | Use it always when designing UI. |
+| `/spec-impl-game <NN-slug-game>` | `/spec-impl` for **game specs** (`specs/NN-<slug>-game.md`): follows `spec-impl`'s phases by reference (not a copy), then runs `skin-designer` and **then** `mobile-porter` (`/games/<slug>` + `/games/<slug>/play`) sequentially, since both take "highest spec + 1". Both only write Draft specs. User-invoked only. |
+| `arcade-vault-game` | Create or port a game (engine + registry + migration + cover CSS + RLS check). **Spec-first**: writes the Draft spec, then STOPS before touching `lib/`, `app/` or `supabase/`. Templates in `assets/` (`engine.ts.tpl`, `input.ts.tpl`, `migration.sql.tpl`). |
+
+`spec` and `spec-impl` come from `Klerith/fernando-skills`, pinned in `skills-lock.json`. Also use the **global** `/frontend-design` skill (not in this repo) whenever designing UI.
 
 ### Project subagents (`.claude/agents/`)
 
-| Agent | Use |
-| ----- | --- |
-| `game-planner` | Plans and decides **which game to add next**: reads the real state (`GAMES.md`, registry, `specs/`, migrations, `resources/started-games/`), scores 2–4 candidates (fit, variety, effort, replayability, reuse) and recommends ONE, handing off to `arcade-vault-game`. Never writes code, specs or migrations. Opus, read-only except for its to-do and its memory. |
-| `game-jam` | Designer for a **game jam** (see below). Launched 3× in parallel by the main thread, each with a brief (theme, slug, name, `cat`, `color`, angle); writes ONE full spec to `specs/game-jam/<slug>/<slug>-game.md` in the format of specs 07–09. Never writes code, migrations or anything else. Opus, no memory. |
-| `skin-designer` | Receives a **game id** and ensures that game has at least 3 canvas-palette skins: `classic` (default, today's exact colors), `neon`, `retro`, plus the player's skin selector. **Spec-first in two runs**: Phase A writes `specs/NN-<slug>-skins.md` (Draft) and stops; Phase B implements once it's Approved. Contract: `lib/games/skins.ts`, optional `options.skin` + `setSkin?` (live swap, no restart) in `lib/games/types.ts`, `GAME_SKINS` in the registry, `components/player/SkinSelector.tsx` (persists `av_skin_<slug>`), per-game `lib/games/<slug>/skins.ts`. Never touches `supabase/` or gameplay. One game per run. Opus, no memory. |
-| `mobile-porter` | Receives a **target** (a route like `/games`, a `components/` folder, or `todo`) and makes the web look and work well on mobile (375/390px + landscape in the player), tablet (768px) and desktop (1280px) — responsive web only, no native app/PWA. Audits with the Playwright MCP against `npm run dev` (overflow, touch targets ≥ 44px, text ≥ 14px, inputs ≥ 16px, nav, tables, modals, canvas + touch controls fit), falling back to a static code audit if the server is down. **Spec-first in two runs**: Phase A writes `specs/NN-<slug>-mobile.md` (Draft) and stops; Phase B implements once it's Approved. New CSS is mobile-first (`min-width: 768/1024px`); existing desktop-first `max-width` queries are only migrated when the spec says so. Writes only `app/globals.css`, `components/**`, `app/layout.tsx` (`viewport`) and the target's pages; never `lib/games/**`, data, `supabase/` or `public/`. Opus, no memory. |
-| `game-performance` | Receives a **game id** and reviews its render performance, built on spec 18's method and findings. Bench A: Playwright MCP + CDP CPU 4x, main-thread ms/s from `Performance.getMetrics` in **paired runs only** (noise ±10–30%; rAF delta on desktop is saturated at vsync and never used). Bench B: real Android via `adb` + `connectOverCDP` (frames p50/p95, % > 33 ms) — the only judge for GPU costs like `shadowBlur`. Isolation variants (`sin-fondo`, `sin-glow`, `sin-anim`, `sin-crt-blend`) + D1 rule (fix applies only if its variant improves ≥ 10%); deterministic canvas captures (seeded `Math.random`, fixed rAF timestamps) prove no visual change. Harness lives in gitignored `.playwright-mcp/perf/`. **Spec-first in two runs**: Phase A writes `specs/NN-<slug>-performance.md` (Draft, with baseline) and stops; Phase B implements once it's Approved and re-measures. Writes only the game's `render.ts`/`engine.ts` (caches), `glow-cache.ts` and player CSS when the spec says so; never gameplay, `touch.ts`, data, `supabase/` or `public/`. Opus, no memory. |
+All run on **Opus**; only `game-planner` has memory. The four "spec-first" agents work in **two runs**: Phase A audits and writes `specs/NN-<slug>-<kind>.md` (Draft) and STOPS; Phase B implements once the spec is Approved. One target per run.
 
-- **`GAMES-TODO.md`** (repo root) is the visible, committed to-do of game suggestions and the **source of truth** for their state: *Pendientes de decisión* → *Aceptados* → *Implementados*, or *Descartados* (with reason). Each game appears once; the agent moves it between sections. Manual edits are respected as decisions.
-- Its persistent memory (`memory: project`) lives in `.claude/agent-memory/game-planner/MEMORY.md` and only holds what the to-do doesn't: user preferences and longer reasons. It never re-suggests a discarded game unless asked.
-- When a game is accepted or implemented via `arcade-vault-game`, tell `game-planner` (or move the item in `GAMES-TODO.md`) so the to-do stays in sync.
+| Agent | Input → output | Scope / never touches |
+| ----- | -------------- | --------------------- |
+| `game-planner` | Decides **which game to add next**: scores 2–4 candidates against the real state (`GAMES.md`, registry, `specs/`, migrations, `resources/started-games/`) and recommends ONE → hands off to `arcade-vault-game`. | Writes only `GAMES-TODO.md` and its memory. No code, specs or migrations. |
+| `game-jam` | One brief (theme, slug, name, `cat`, `color`, angle) → ONE spec in `specs/game-jam/<slug>/<slug>-game.md` (format of specs 07–09). Launched 3× in parallel, see *Game jam*. | Nothing else. |
+| `skin-designer` | Game id → `-skins` spec; ensures `classic`/`neon`/`retro` + the skin selector (contract in *Skins* above). | No `supabase/`, no gameplay. |
+| `mobile-porter` | Route, `components/` folder or `todo` → `-mobile` spec. Playwright audit at 375/390 (+ player landscape), 768, 1280: overflow, touch ≥ 44px, text ≥ 14px, inputs ≥ 16px; static audit if `npm run dev` is down. New CSS mobile-first (`min-width: 768/1024px`). | Writes only `app/globals.css`, `components/**`, `app/layout.tsx` (`viewport`) and the target's pages. Never `lib/games/**`, data, `supabase/`, `public/`. |
+| `game-performance` | Game id → `-performance` spec with baseline, built on spec 18. Bench A: Playwright + CDP CPU 4x, main-thread ms/s, **paired runs only** (rAF delta is vsync-saturated, never used). Bench B: Android via `adb` — the only judge for GPU costs like `shadowBlur`. A fix ships only if its isolation variant improves ≥ 10%; deterministic canvas captures prove no visual change. Harness in gitignored `.playwright-mcp/perf/`. | Writes only the game's `render.ts`/`engine.ts` (caches), `glow-cache.ts` and player CSS. Never gameplay, `touch.ts`, data, `supabase/`, `public/`. |
+
+**`GAMES-TODO.md`** is the committed **source of truth** for game ideas: *Pendientes de decisión* → *Aceptados* → *Implementados*, or *Descartados* (with reason); each game appears once and manual edits count as decisions. `game-planner`'s memory (`.claude/agent-memory/game-planner/MEMORY.md`) only holds preferences and longer reasons, and it never re-suggests a discarded game unless asked. When a game is accepted or implemented, move it in `GAMES-TODO.md` (or tell `game-planner`).
 
 ### Game jam (main thread orchestrates)
 

@@ -1,29 +1,91 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/session-context";
+import { useActionState, useState } from "react";
+import Link from "next/link";
+import { signIn, signUp, type AuthFormState } from "@/app/login/actions";
 
 type Tab = "in" | "up";
 
+const INITIAL_STATE: AuthFormState = { error: null };
+
+function FormError({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <p className="save-error" role="alert">
+      {message}
+    </p>
+  );
+}
+
+function SignInForm() {
+  const [state, action, pending] = useActionState(signIn, INITIAL_STATE);
+  return (
+    <form action={action}>
+      <div className="field">
+        <label htmlFor="signin-email">Correo electrónico</label>
+        <input id="signin-email" name="email" type="email" autoComplete="email" required placeholder="jugador@vault.gg" />
+      </div>
+      <div className="field">
+        <label htmlFor="signin-password">Contraseña</label>
+        <input
+          id="signin-password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          placeholder="••••••••"
+        />
+      </div>
+      <FormError message={state.error} />
+      <button className="btn lg" type="submit" disabled={pending} style={{ width: "100%", marginTop: 8 }}>
+        {pending ? "CONECTANDO..." : "ENTRAR AL VAULT"}
+      </button>
+    </form>
+  );
+}
+
+function SignUpForm() {
+  const [state, action, pending] = useActionState(signUp, INITIAL_STATE);
+  return (
+    <form action={action} className="slide-in">
+      <div className="field">
+        <label htmlFor="signup-username">Nombre de jugador</label>
+        <input
+          id="signup-username"
+          name="username"
+          autoComplete="username"
+          required
+          minLength={3}
+          maxLength={10}
+          placeholder="PX_KAI"
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="signup-email">Correo electrónico</label>
+        <input id="signup-email" name="email" type="email" autoComplete="email" required placeholder="jugador@vault.gg" />
+      </div>
+      <div className="field">
+        <label htmlFor="signup-password">Contraseña</label>
+        <input
+          id="signup-password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          placeholder="••••••••"
+        />
+      </div>
+      <FormError message={state.error} />
+      <button className="btn lg" type="submit" disabled={pending} style={{ width: "100%", marginTop: 8 }}>
+        {pending ? "CREANDO CUENTA..." : "CREAR Y JUGAR"}
+      </button>
+    </form>
+  );
+}
+
 export function Auth() {
-  const router = useRouter();
-  const { login } = useSession();
   const [tab, setTab] = useState<Tab>("in");
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
-  const [email, setEmail] = useState("");
-
-  const submit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    login({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    router.push("/games");
-  };
-
-  const playAsGuest = () => {
-    login(null);
-    router.push("/games");
-  };
 
   return (
     <div className="av-auth-wrap fade-in">
@@ -35,48 +97,19 @@ export function Auth() {
         </div>
 
         <div className="auth-tabs">
-          <button className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>
+          <button type="button" className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>
             INICIAR SESIÓN
           </button>
-          <button className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>
+          <button type="button" className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>
             CREAR CUENTA
           </button>
         </div>
 
-        <form onSubmit={submit}>
-          <div className="field">
-            <label>Usuario</label>
-            <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="px_kai" />
-          </div>
-          {tab === "up" && (
-            <div className="field slide-in">
-              <label>Correo electrónico</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jugador@vault.gg" />
-            </div>
-          )}
-          <div className="field">
-            <label>Contraseña</label>
-            <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="••••••••" />
-          </div>
+        {tab === "in" ? <SignInForm /> : <SignUpForm />}
 
-          <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
-          </button>
-        </form>
-
-        <button className="btn ghost" style={{ width: "100%", marginTop: 10 }} onClick={playAsGuest}>
+        <Link href="/games" className="btn ghost" style={{ width: "100%", marginTop: 10 }}>
           JUGAR COMO INVITADO
-        </button>
-
-        <div className="auth-divider">O CONTINÚA CON</div>
-        <div className="social">
-          <button className="btn ghost" type="button">
-            ◆ GOOGLE
-          </button>
-          <button className="btn ghost" type="button">
-            ▣ GITHUB
-          </button>
-        </div>
+        </Link>
 
         <div className="auth-terms">AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE</div>
       </div>
