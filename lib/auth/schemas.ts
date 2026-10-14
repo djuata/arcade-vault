@@ -14,7 +14,19 @@ export const signInSchema = z.object({
   password: z.string().min(8),
 });
 
-export const signUpSchema = signInSchema.extend({ username: usernameSchema });
+// Same rule as the dashboard's "Password requirements" (spec 21). Symbols are
+// Supabase's exact list, so "ñ" or a space does not count as a symbol.
+export const PASSWORD_SYMBOLS = /[!@#$%^&*()_+\-=[\]{};'\\:"|<>?,./`~]/;
+export const passwordSchema = z
+  .string()
+  .min(8)
+  .regex(/[a-z]/)
+  .regex(/[A-Z]/)
+  .regex(/[0-9]/)
+  .regex(PASSWORD_SYMBOLS);
+
+// signInSchema keeps z.string().min(8): existing passwords must still sign in.
+export const signUpSchema = signInSchema.extend({ username: usernameSchema, password: passwordSchema });
 
 export type SignUpField = keyof z.infer<typeof signUpSchema>;
 

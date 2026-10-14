@@ -12,7 +12,7 @@ export type AuthFormState = { error: string | null };
 
 const FIELD_MESSAGES: Record<SignUpField, string> = {
   username: AUTH_MESSAGES.invalidUsername,
-  password: AUTH_MESSAGES.passwordTooShort,
+  password: AUTH_MESSAGES.passwordRules,
   email: AUTH_MESSAGES.generic,
 };
 
@@ -30,7 +30,7 @@ function signUpErrorMessage(error: AuthError): string {
     case "user_already_exists":
       return AUTH_MESSAGES.emailTaken;
     case "weak_password":
-      return AUTH_MESSAGES.passwordTooShort;
+      return AUTH_MESSAGES.passwordRules;
     // The profiles trigger aborted the sign-up: the username was taken in between.
     case "unexpected_failure":
       return AUTH_MESSAGES.usernameTaken;
