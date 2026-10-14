@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Arcade Vault — Iniciar sesión",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage(props: PageProps<"/login">) {
   if (await getSessionUser()) redirect("/games");
-  return <Auth />;
+  const { error } = await props.searchParams;
+  return <Auth oauthError={error === "oauth"} />;
 }

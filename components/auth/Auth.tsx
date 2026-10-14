@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { signIn, signUp, type AuthFormState } from "@/app/login/actions";
+import { signIn, signInWithOAuth, signUp, type AuthFormState } from "@/app/login/actions";
+import { AUTH_MESSAGES } from "@/lib/auth/messages";
 
 type Tab = "in" | "up";
 
@@ -84,7 +85,24 @@ function SignUpForm() {
   );
 }
 
-export function Auth() {
+// Same buttons for both tabs: with OAuth, signing in and signing up are one step (spec 20, D8).
+function OAuthButtons() {
+  return (
+    <>
+      <div className="auth-divider">O CONTINÚA CON</div>
+      <form action={signInWithOAuth} className="social">
+        <button className="btn ghost" type="submit" name="provider" value="google">
+          ◆ GOOGLE
+        </button>
+        <button className="btn ghost" type="submit" name="provider" value="github">
+          ◆ GITHUB
+        </button>
+      </form>
+    </>
+  );
+}
+
+export function Auth({ oauthError = false }: { oauthError?: boolean }) {
   const [tab, setTab] = useState<Tab>("in");
 
   return (
@@ -105,7 +123,9 @@ export function Auth() {
           </button>
         </div>
 
+        <FormError message={oauthError ? AUTH_MESSAGES.oauthFailed : null} />
         {tab === "in" ? <SignInForm /> : <SignUpForm />}
+        <OAuthButtons />
 
         <Link href="/games" className="btn ghost" style={{ width: "100%", marginTop: 10 }}>
           JUGAR COMO INVITADO
