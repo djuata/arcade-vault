@@ -2,17 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { toPlayerName, type Game } from "@/lib/games";
+import type { Game } from "@/lib/games";
 import { GAME_ENGINES, GAME_SKINS, GAME_TOUCH_CONTROLS } from "@/lib/games/registry";
 import { DEFAULT_SKIN, readStoredSkin, storeSkin } from "@/lib/games/skins";
 import type { GameCallbacks } from "@/lib/games/types";
 import { useSession } from "@/lib/session-context";
-import { createClient } from "@/lib/supabase/client";
+import { AUTH_MESSAGES } from "@/lib/auth/messages";
+import { saveScore } from "@/app/games/[id]/play/actions";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { SkinSelector } from "./SkinSelector";
 import { TouchControls } from "./TouchControls";
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
+type SaveStatus = "idle" | "saving" | "saved" | "name-taken" | "error";
 
 // ── Skin preference store (same pattern as lib/session-context.tsx) ─────────
 
@@ -54,17 +55,6 @@ function useGameSkin(slug: string, available: readonly string[]) {
   return [skin, changeSkin] as const;
 }
 
-async function insertScore(gameId: string, playerName: string, score: number): Promise<boolean> {
-  try {
-    const { error } = await createClient()
-      .from("scores")
-      .insert({ game_id: gameId, player_name: playerName, score });
-    return !error;
-  } catch {
-    return false;
-  }
-}
-
 function isTypingTarget(target: EventTarget | null) {
   return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
 }
@@ -89,7 +79,8 @@ export function GamePlayer({ game }: { game: Game }) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const level = hasEngine ? engineLevel : Math.floor(score / 2500) + 1;
-  const name = nameOverride ?? (user ? toPlayerName(user.name) : "INVITADO");
+  // Logged in, the name is the profile username and can't be edited (spec 19, D9).
+  const name = user ? user.name : (nameOverride ?? "INVITADO");
   const canSave = saveStatus !== "saving" && name.trim().length > 0 && score > 0;
 
   const callbacks = useMemo<GameCallbacks>(
@@ -137,8 +128,7 @@ export function GamePlayer({ game }: { game: Game }) {
 
   const saveToLeaderboard = async () => {
     setSaveStatus("saving");
-    const ok = await insertScore(game.id, name.trim(), score);
-    setSaveStatus(ok ? "saved" : "error");
+    setSaveStatus(await saveScore({ gameId: game.id, score, playerName: name }));
   };
 
   return (
@@ -235,18 +225,31 @@ export function GamePlayer({ game }: { game: Game }) {
             ) : game.playable ? (
               <>
                 <div className="input-row">
-                  <input
-                    value={name}
-                    onChange={(e) => setNameOverride(e.target.value.toUpperCase().slice(0, 10))}
-                    maxLength={10}
-                    placeholder="TUS INICIALES"
-                  />
+                  {user ? (
+                    <div className="player-tag">{user.name}</div>
+                  ) : (
+                    <input
+                      value={name}
+                      onChange={(e) => {
+                        setNameOverride(e.target.value.toUpperCase().slice(0, 10));
+                        if (saveStatus === "name-taken") setSaveStatus("idle");
+                      }}
+                      maxLength={10}
+                      placeholder="TUS INICIALES"
+                      aria-label="Tu nombre"
+                    />
+                  )}
                   <button className="btn yellow" disabled={!canSave} onClick={saveToLeaderboard}>
                     {saveStatus === "saving" ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
                   </button>
                 </div>
                 {saveStatus === "error" && (
                   <div className="save-error">NO SE PUDO GUARDAR. INTÉNTALO DE NUEVO.</div>
+                )}
+                {saveStatus === "name-taken" && (
+                  <div className="save-error" role="alert">
+                    {AUTH_MESSAGES.nameBelongsToPlayer}
+                  </div>
                 )}
               </>
             ) : (

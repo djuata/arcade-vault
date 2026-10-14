@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Game, ScoreRow } from "@/lib/games";
-import { toPlayerName } from "@/lib/games";
-import { useSession } from "@/lib/session-context";
+import { useSession, type Session } from "@/lib/session-context";
 import { createClient } from "@/lib/supabase/client";
 
 interface MyBest {
   gameId: string;
+  ownerId: string;
   owner: string;
   rank: number;
   score: number;
@@ -62,13 +62,16 @@ function PodiumSlot({ row, className, label }: { row: ScoreRow | undefined; clas
   );
 }
 
-function useMyBest(game: Game | undefined, playerName: string | null): MyBest | null {
+// Looked up by user_id: an old guest score with the same name is never "mine" (spec 19).
+function useMyBest(game: Game | undefined, player: Session | null): MyBest | null {
   const [myBest, setMyBest] = useState<MyBest | null>(null);
   const gameId = game?.id;
   const playable = game?.playable ?? false;
+  const playerId = player?.id;
+  const playerName = player?.name;
 
   useEffect(() => {
-    if (!gameId || !playable || !playerName) return;
+    if (!gameId || !playable || !playerId || !playerName) return;
     const controller = new AbortController();
     const supabase = createClient();
 
@@ -78,7 +81,7 @@ function useMyBest(game: Game | undefined, playerName: string | null): MyBest | 
         .from("scores_ranked")
         .select("rank, score, created_at")
         .eq("game_id", gameId)
-        .eq("player_name", playerName)
+        .eq("user_id", playerId)
         .order("rank")
         .limit(1)
         .abortSignal(controller.signal)
@@ -87,6 +90,7 @@ function useMyBest(game: Game | undefined, playerName: string | null): MyBest | 
 
       setMyBest({
         gameId,
+        ownerId: playerId,
         owner: playerName,
         rank: data.rank,
         score: data.score,
@@ -97,9 +101,9 @@ function useMyBest(game: Game | undefined, playerName: string | null): MyBest | 
     });
 
     return () => controller.abort();
-  }, [gameId, playable, playerName]);
+  }, [gameId, playable, playerId, playerName]);
 
-  return myBest && myBest.gameId === gameId && myBest.owner === playerName ? myBest : null;
+  return myBest && myBest.gameId === gameId && myBest.ownerId === playerId ? myBest : null;
 }
 
 export function HallOfFame({ games, scoresByGame }: HallOfFameProps) {
@@ -108,8 +112,7 @@ export function HallOfFame({ games, scoresByGame }: HallOfFameProps) {
 
   const game = useMemo(() => games.find((g) => g.id === tab), [games, tab]);
   const rows = scoresByGame[tab] ?? [];
-  const playerName = user ? toPlayerName(user.name) : null;
-  const myBest = useMyBest(game, playerName);
+  const myBest = useMyBest(game, user);
 
   if (!game) return null;
 

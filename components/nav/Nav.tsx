@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session-context";
+import { AccountMenu } from "./AccountMenu";
 
 const PANEL_ID = "av-mobile-panel";
 
@@ -67,9 +68,7 @@ export function Nav() {
           <span>CRÉDITOS · 03</span>
         </div>
         {user ? (
-          <button className="btn ghost auth-btn" onClick={logout}>
-            {user.name} ▾
-          </button>
+          <AccountMenu key={pathname} name={user.name} onLogout={logout} />
         ) : (
           <Link href="/login" className="btn auth-btn">
             Iniciar Sesión
@@ -111,19 +110,17 @@ export function Nav() {
         <Link href="/about" className={isAboutActive ? "active" : ""} onClick={close}>
           Acerca de
         </Link>
-        <Link href="/login" className={isLoginActive ? "active" : ""} onClick={close}>
-          {user ? "Cuenta" : "Iniciar Sesión"}
-        </Link>
-        {user && (
-          <button
-            className="btn ghost"
-            onClick={() => {
-              logout();
-              close();
-            }}
-          >
-            {user.name} ▾
-          </button>
+        {user ? (
+          <div className="av-mobile-account">
+            <span className="pixel neon-cyan">{user.name}</span>
+            <button type="button" className="btn ghost" onClick={logout}>
+              CERRAR SESIÓN
+            </button>
+          </div>
+        ) : (
+          <Link href="/login" className={isLoginActive ? "active" : ""} onClick={close}>
+            Iniciar Sesión
+          </Link>
         )}
         <div style={{ flex: 1 }} />
         <div className="pixel av-mobile-panel-credits">CRÉDITOS · 03</div>
