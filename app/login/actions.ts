@@ -66,8 +66,13 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
     return { error: AUTH_MESSAGES.generic };
   }
 
-  const { error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
   if (error) return { error: signUpErrorMessage(error) };
+  // An email that already belongs to an account (e.g. a Google/GitHub one) comes back as a
+  // fake user with no identities and no session, not as an error (anti-enumeration).
+  if (data.user?.identities?.length === 0) return { error: AUTH_MESSAGES.emailTaken };
+  // Email confirmation is off, so a real sign-up always opens a session.
+  if (!data.session) return { error: AUTH_MESSAGES.generic };
   redirect("/games");
 }
 
