@@ -103,7 +103,7 @@ Every feature goes through a spec in `specs/NN-<slug>.md` (Spanish, `> **Status:
 
 ### Project subagents (`.claude/agents/`)
 
-All run on **Opus**; only `game-planner` has memory. The four "spec-first" agents work in **two runs**: Phase A audits and writes `specs/NN-<slug>-<kind>.md` (Draft) and STOPS; Phase B implements once the spec is Approved. One target per run.
+All run on **Opus**; only `game-planner` has memory. The five "spec-first" agents work in **two runs**: Phase A audits and writes `specs/NN-<slug>-<kind>.md` (Draft) and STOPS; Phase B implements once the spec is Approved. One target per run.
 
 | Agent | Input → output | Scope / never touches |
 | ----- | -------------- | --------------------- |
@@ -112,6 +112,7 @@ All run on **Opus**; only `game-planner` has memory. The four "spec-first" agent
 | `skin-designer` | Game id → `-skins` spec; ensures `classic`/`neon`/`retro` + the skin selector (contract in *Skins* above). | No `supabase/`, no gameplay. |
 | `mobile-porter` | Route, `components/` folder or `todo` → `-mobile` spec. Playwright audit at 375/390 (+ player landscape), 768, 1280: overflow, touch ≥ 44px, text ≥ 14px, inputs ≥ 16px; static audit if `npm run dev` is down. New CSS mobile-first (`min-width: 768/1024px`). | Writes only `app/globals.css`, `components/**`, `app/layout.tsx` (`viewport`) and the target's pages. Never `lib/games/**`, data, `supabase/`, `public/`. |
 | `game-performance` | Game id → `-performance` spec with baseline, built on spec 18. Bench A: Playwright + CDP CPU 4x, main-thread ms/s, **paired runs only** (rAF delta is vsync-saturated, never used). Bench B: Android via `adb` — the only judge for GPU costs like `shadowBlur`. A fix ships only if its isolation variant improves ≥ 10%; deterministic canvas captures prove no visual change. Harness in gitignored `.playwright-mcp/perf/`. | Writes only the game's `render.ts`/`engine.ts` (caches), `glow-cache.ts` and player CSS. Never gameplay, `touch.ts`, data, `supabase/`, `public/`. |
+| `security-auditor` | `db`, `app`, `todo` or one area (`/login`, `scores`) → `-security` spec, built on specs 21–22. DB: advisors, RLS, `pg_policies`, grants, `SECURITY DEFINER` + `EXECUTE`, migration drift, role probes **inside a `DO` block that raises to roll back** (never real writes). App: Server Actions re-check session + Zod, route handlers, proxy lists, HttpOnly cookies, secrets, headers (`curl -sI`), `npm audit`. Accepted risks (leaked passwords, global auth rate limit, pre-account takeover, no CSP) are reported as `ACEPTADO`, not new findings; with no new findings it writes nothing. | Writes only migrations, `lib/auth/`, `lib/supabase/`, `proxy.ts`, `app/**/actions.ts`/`route.ts` named by the spec. Never games, UI, `public/`, real `.env`, dashboard settings (manual steps). |
 
 **`GAMES-TODO.md`** is the committed **source of truth** for game ideas: *Pendientes de decisión* → *Aceptados* → *Implementados*, or *Descartados* (with reason); each game appears once and manual edits count as decisions. `game-planner`'s memory (`.claude/agent-memory/game-planner/MEMORY.md`) only holds preferences and longer reasons, and it never re-suggests a discarded game unless asked. When a game is accepted or implemented, move it in `GAMES-TODO.md` (or tell `game-planner`).
 
