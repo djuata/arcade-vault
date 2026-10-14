@@ -260,6 +260,7 @@ En "ELIGE TU NOMBRE" se reusan `invalidUsername`, `usernameTaken` y `generic`.
 - [ ] Un usuario de la SPEC 19 (email + contraseña) que entra con Google usando el **mismo** email termina en `/games` con su username de siempre, sin pasar por `/login/nombre`. `auth.identities` muestra las dos identidades sobre el mismo `user_id`.
 - [ ] Un usuario OAuth con profile guarda un score con `user_id` = su id y `player_name` = su username (RLS de la 19, sin cambios).
 - [ ] El registro y el login con email + contraseña de la SPEC 19 siguen funcionando igual (registro con `kai_01` → `KAI_01`).
+- [ ] Crear cuenta con email + contraseña usando el email de una cuenta de Google/GitHub muestra `ESE CORREO YA TIENE UNA CUENTA`, no redirige y no crea ningún usuario.
 - [ ] Los probes SQL del paso 2 dan el resultado esperado.
 
 **Calidad**
@@ -286,6 +287,7 @@ En "ELIGE TU NOMBRE" se reusan `invalidUsername`, `usernameTaken` y `generic`.
 - **D12 — Sí: solo localhost en esta spec.** **No:** configurar ya un dominio de producción, porque todavía no hay deploy. El paso 1 documenta cómo sumarlo.
 - **D13 — Sí: el nombre elegido es permanente** (sin grant de `update`). Es el mismo criterio que en la 19, donde el username del registro tampoco se cambia. **No:** dejar editarlo en esta spec, porque va con la página de cuenta.
 - **D14 — Sí: aceptar que un usuario sin profile pueda venir también de un `signUp` por email hecho directamente contra la API sin `username`.** Cae en la misma pantalla obligatoria, así que el estado es consistente. **No:** distinguir el provider en el trigger, porque es más lógica para el mismo resultado.
+- **D15 — Sí (fix durante la verificación): `signUp` detecta el registro repetido.** Con un email que ya pertenece a una cuenta OAuth, Supabase responde 200 con un usuario falso (`identities: []`, sin sesión) en vez de un error, para no revelar qué emails existen. Antes, `signUp` redirigía a `/games` sin sesión. Ahora `identities` vacío → `ESE CORREO YA TIENE UNA CUENTA`, y sin sesión → error genérico. **No:** loguear al usuario por coincidencia de email, porque cualquiera que conozca el email entraría a la cuenta. **No (por ahora):** permitir agregar una contraseña a una cuenta OAuth (`updateUser({ password })`), que va con la página de cuenta.
 
 ---
 
