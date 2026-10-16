@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# supabase cli (local state; may hold a linked project ref)
+supabase/.temp/
+
 # playwright mcp
 .playwright-mcp/
 .playwright-screenshots/
